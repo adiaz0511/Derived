@@ -121,7 +121,7 @@ actor FileSystemScanner {
             category: .deviceSupport,
             safety: .caution,
             reason: "Xcode may recreate support files the next time a matching physical device is connected.",
-            minimumAge: { $0.preselectOldDeviceSupport ? $0.deviceSupportMinimumAgeDays : 0 },
+            minimumAge: { _ in 0 },
             isRecommended: { age, settings in settings.preselectOldDeviceSupport && age >= settings.deviceSupportMinimumAgeDays }
         ),
         .init(
@@ -129,7 +129,7 @@ actor FileSystemScanner {
             category: .deviceSupport,
             safety: .caution,
             reason: "Xcode may recreate support files the next time a matching physical device is connected.",
-            minimumAge: { $0.preselectOldDeviceSupport ? $0.deviceSupportMinimumAgeDays : 0 },
+            minimumAge: { _ in 0 },
             isRecommended: { age, settings in settings.preselectOldDeviceSupport && age >= settings.deviceSupportMinimumAgeDays }
         ),
         .init(

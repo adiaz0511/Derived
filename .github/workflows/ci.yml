@@ -16,14 +16,19 @@ jobs:
     steps:
       - name: Check out repository
         uses: actions/checkout@v5
+        with:
+          fetch-depth: 0
 
-      - name: Build and test
-        run: >-
-          xcodebuild
-          -project Derived.xcodeproj
-          -scheme Derived
-          -configuration Debug
-          -destination 'platform=macOS'
-          -derivedDataPath "$RUNNER_TEMP/DerivedData"
-          CODE_SIGNING_ALLOWED=NO
-          test
+      - name: Test command-line and MCP integration
+        run: swift test
+
+      - name: Test MCP protocol and CLI entry points
+        run: scripts/test-agent-protocol.sh
+
+      - name: Build and package release agent tools
+        run: |
+          scripts/package-agent-tools.sh 0.2.0
+          test -f "dist/DerivedAgentTools-0.2.0-macOS-$(uname -m).tar.gz"
+
+      - name: Verify the existing application
+        run: scripts/verify-app-regression.sh

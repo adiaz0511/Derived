@@ -68,6 +68,41 @@ struct SelectionRuleTests {
             #expect(item.isRecommended)
         }
     }
+
+    @Test func deviceSupportAgeControlsRecommendationWithoutFilteringScanResults() async throws {
+        let temporaryHome = FileManager.default.temporaryDirectory
+            .appending(path: "DerivedDeviceSupport-\(UUID().uuidString)", directoryHint: .isDirectory)
+        defer { try? FileManager.default.removeItem(at: temporaryHome) }
+
+        let recentDate = try #require(Calendar.current.date(byAdding: .day, value: -10, to: .now))
+        let oldDate = try #require(Calendar.current.date(byAdding: .day, value: -120, to: .now))
+        let candidates = [
+            ("Library/Developer/Xcode/iOS DeviceSupport/iOS Recent", recentDate),
+            ("Library/Developer/Xcode/iOS DeviceSupport/iOS Old", oldDate),
+            ("Library/Developer/Xcode/watchOS DeviceSupport/watchOS Recent", recentDate),
+            ("Library/Developer/Xcode/watchOS DeviceSupport/watchOS Old", oldDate)
+        ]
+
+        for (relativePath, modifiedAt) in candidates {
+            let directory = temporaryHome.appending(path: relativePath, directoryHint: .isDirectory)
+            try FileManager.default.createDirectory(at: directory, withIntermediateDirectories: true)
+            try Data("symbols".utf8).write(to: directory.appending(path: "symbols"))
+            try FileManager.default.setAttributes([.modificationDate: modifiedAt], ofItemAtPath: directory.path)
+        }
+
+        var settings = CleanupSettings()
+        settings.preselectOldDeviceSupport = true
+        settings.deviceSupportMinimumAgeDays = 90
+
+        let result = await FileSystemScanner(homeDirectory: temporaryHome).scan(settings: settings)
+        let deviceSupport = result.items.filter { $0.category == .deviceSupport }
+
+        #expect(deviceSupport.count == 4)
+        #expect(deviceSupport.first { $0.name == "iOS Recent" }?.isRecommended == false)
+        #expect(deviceSupport.first { $0.name == "watchOS Recent" }?.isRecommended == false)
+        #expect(deviceSupport.first { $0.name == "iOS Old" }?.isRecommended == true)
+        #expect(deviceSupport.first { $0.name == "watchOS Old" }?.isRecommended == true)
+    }
 }
 
 private actor StubCommandRunner: CommandRunning {

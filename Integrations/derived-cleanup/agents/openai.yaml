@@ -1,0 +1,4 @@
+interface:
+  display_name: "Derived Cleanup"
+  short_description: "Inspect and clean Xcode storage through Derived MCP or CLI"
+  default_prompt: "Use $derived-cleanup to scan this Mac and summarize what can be safely cleaned without deleting anything."

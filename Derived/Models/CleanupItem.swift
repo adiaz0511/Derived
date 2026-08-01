@@ -1,7 +1,7 @@
 import Foundation
 
-nonisolated struct CleanupItem: Identifiable, Hashable, Sendable {
-    enum RemovalMethod: Hashable, Sendable {
+nonisolated struct CleanupItem: Codable, Identifiable, Hashable, Sendable {
+    enum RemovalMethod: Codable, Hashable, Sendable {
         case fileSystem
         case simulatorDevice(udid: String)
         case simulatorRuntime(identifier: String)

@@ -15,6 +15,25 @@ Derived is a native macOS menu-bar application for inspecting and removing stora
 - Supports scheduled cleanup for Derived Data, Xcode logs, and Xcode caches.
 - Supports Launch at Login through the native macOS login-item service.
 - Keeps a local JSON Lines cleanup history.
+- Provides versioned native CLI and local MCP tools for Codex, Claude, Cursor, and other compatible agents.
+
+## Agent tools
+
+The current CLI and MCP agent-tools version is `0.2.0`. The CLI provides an aligned ASCII table for interactive use and structured JSON for scripts and agents.
+
+```sh
+derived --version
+derived scan
+derived scan --json
+```
+
+From the repository, build the release products, install the CLI and MCP server, install the portable Codex skill, and register the MCP server with:
+
+```sh
+scripts/install-codex-agent-tools.sh
+```
+
+See [Agent Integrations](docs/AGENT_INTEGRATIONS.md) for the complete CLI workflow, MCP configuration, packaging, safety rules, and skill installation instructions.
 
 ## Safety model
 
@@ -63,6 +82,14 @@ xcodebuild \
   test
 ```
 
+Build and test the CLI and MCP server:
+
+```sh
+swift test
+scripts/test-agent-protocol.sh
+swift build -c release
+```
+
 Launch at Login requires a signed application installed in a stable location. It may not work from an unsigned development build.
 
 ## Project structure
@@ -72,7 +99,12 @@ Launch at Login requires a signed application installed in a stable location. It
 - `Derived/Models`: cleanup, scan, automation, and reporting models
 - `Derived/Services`: scanning, validation, process inspection, deletion, and persistence
 - `Derived/Shared`: shared formatting and design constants
+- `Derived/AgentIntegration`: shared CLI and MCP models, state, and safety workflow
 - `DerivedTests`: safety and behavior tests
+- `DerivedCLITests`: CLI argument, version, and human-readable output tests
+- `DerivedCoreTests`: agent integration and destructive-operation safeguards
+- `Tools`: native CLI and MCP executables
+- `Integrations`: portable agent skill
 
 ## Privacy
 

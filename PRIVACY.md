@@ -10,6 +10,8 @@ The application reads filesystem metadata for approved Xcode, Simulator, and XCT
 
 Preferences are stored through `UserDefaults`. Cleanup results are stored locally as JSON Lines under the user's Application Support directory.
 
+The CLI and local MCP server store temporary scan and cleanup-plan records under `~/Library/Application Support/Derived/Agent`. These records can include local candidate paths, use owner-only file permissions, and expire automatically.
+
 ## Data transmission
 
 Derived does not include analytics, advertising, accounts, telemetry, or network services. It does not transmit scanned paths, process information, preferences, or cleanup history.

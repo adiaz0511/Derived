@@ -23,7 +23,7 @@ struct CleanupPreferencesCard: View {
 
                 SectionInfoButton(
                     title: "Cleanup Preferences",
-                    message: "Controls Device Support preselection and identifies simulator runtimes you want to protect during manual cleanup."
+                    message: "Controls automatic Device Support selection and identifies simulator runtimes you want to protect during manual cleanup."
                 )
 
                 Spacer()

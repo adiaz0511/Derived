@@ -45,3 +45,11 @@ Before automatic deletion, Derived checks for Xcode, Simulator, XCTest, CoreSimu
 Manual deletion requires a confirmation alert. Deletion is permanent and does not use the Trash.
 
 Each cleanup produces a local history record containing the trigger, target category, path, operation, outcome, and byte count. History records do not leave the Mac.
+
+## Command-line and agent cleanup
+
+The CLI and MCP server use the same scanners, path validator, process monitor, cleanup coordinator, and history store as the application. Neither interface accepts an arbitrary deletion path.
+
+Agent cleanup requires an expiring scan followed by an expiring cleanup plan. Plans contain only candidate identifiers produced by Derived. Before execution, Derived performs a new scan and rejects the complete plan if a candidate is missing or its identity, category, path, size, modification date, or active state changed. Plans require an exact confirmation phrase and are removed before deletion so they cannot be replayed.
+
+The MCP deletion tool is marked destructive. The server also instructs clients to request explicit user approval. These protocol hints supplement the application-level validation and do not replace it.

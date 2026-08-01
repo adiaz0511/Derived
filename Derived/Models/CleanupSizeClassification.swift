@@ -1,6 +1,6 @@
 import Foundation
 
-nonisolated enum CleanupSizeClassification: Equatable, Sendable {
+nonisolated enum CleanupSizeClassification: Codable, Equatable, Sendable {
     case verified
     case apfsCloneLogical
 }

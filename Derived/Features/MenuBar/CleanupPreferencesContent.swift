@@ -18,7 +18,7 @@ struct CleanupPreferencesContent: View {
 
             PinnedRuntimeList(model: model)
 
-            Text("Device Support changes apply during the next scan. Simulator runtimes are never included in automatic cleanup.")
+            Text("Simulator runtimes are never included in automatic cleanup.")
                 .foregroundStyle(.secondary)
         }
         .frame(maxWidth: .infinity, alignment: .leading)
