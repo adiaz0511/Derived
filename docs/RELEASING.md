@@ -27,13 +27,13 @@ The command writes the DMG and checksum to `dist`. It also creates a matching un
 
 ## Configure signing
 
-Install a Developer ID Application certificate in the login keychain. Then store notarization credentials without adding them to the repository:
+Install a Developer ID Application certificate in the login keychain. Then store App Store Connect API-key notarization credentials without adding them to the repository:
 
 ```sh
 xcrun notarytool store-credentials derived-notary \
-  --apple-id "YOUR_APPLE_ID" \
-  --team-id "YOUR_TEAM_ID" \
-  --password "YOUR_APP_SPECIFIC_PASSWORD"
+  --key "/path/to/AuthKey_KEY_ID.p8" \
+  --key-id "YOUR_KEY_ID" \
+  --issuer "YOUR_ISSUER_ID"
 ```
 
 ## Build and notarize
@@ -55,9 +55,9 @@ Configure these GitHub Actions secrets:
 
 - `DEVELOPER_ID_APPLICATION_P12_BASE64`
 - `DEVELOPER_ID_APPLICATION_P12_PASSWORD`
-- `APPLE_ID`
-- `APPLE_APP_SPECIFIC_PASSWORD`
-- `APPLE_TEAM_ID`
+- `APP_STORE_CONNECT_API_KEY_ID`
+- `APP_STORE_CONNECT_API_ISSUER_ID`
+- `APP_STORE_CONNECT_API_PRIVATE_KEY_BASE64`
 
 Run the Release workflow manually with its default unsigned setting before the first public release. Then create and push the release tag:
 

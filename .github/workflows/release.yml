@@ -63,29 +63,32 @@ jobs:
         env:
           SIGNING_CERTIFICATE: ${{ secrets.DEVELOPER_ID_APPLICATION_P12_BASE64 }}
           SIGNING_PASSWORD: ${{ secrets.DEVELOPER_ID_APPLICATION_P12_PASSWORD }}
-          APPLE_ID: ${{ secrets.APPLE_ID }}
-          APPLE_PASSWORD: ${{ secrets.APPLE_APP_SPECIFIC_PASSWORD }}
-          APPLE_TEAM_ID: ${{ secrets.APPLE_TEAM_ID }}
+          ASC_KEY_ID: ${{ secrets.APP_STORE_CONNECT_API_KEY_ID }}
+          ASC_ISSUER_ID: ${{ secrets.APP_STORE_CONNECT_API_ISSUER_ID }}
+          ASC_PRIVATE_KEY: ${{ secrets.APP_STORE_CONNECT_API_PRIVATE_KEY_BASE64 }}
         run: |
           [[ -n "$SIGNING_CERTIFICATE" ]] || { echo "Missing DEVELOPER_ID_APPLICATION_P12_BASE64" >&2; exit 1; }
           [[ -n "$SIGNING_PASSWORD" ]] || { echo "Missing DEVELOPER_ID_APPLICATION_P12_PASSWORD" >&2; exit 1; }
-          [[ -n "$APPLE_ID" ]] || { echo "Missing APPLE_ID" >&2; exit 1; }
-          [[ -n "$APPLE_PASSWORD" ]] || { echo "Missing APPLE_APP_SPECIFIC_PASSWORD" >&2; exit 1; }
-          [[ -n "$APPLE_TEAM_ID" ]] || { echo "Missing APPLE_TEAM_ID" >&2; exit 1; }
+          [[ -n "$ASC_KEY_ID" ]] || { echo "Missing APP_STORE_CONNECT_API_KEY_ID" >&2; exit 1; }
+          [[ -n "$ASC_ISSUER_ID" ]] || { echo "Missing APP_STORE_CONNECT_API_ISSUER_ID" >&2; exit 1; }
+          [[ -n "$ASC_PRIVATE_KEY" ]] || { echo "Missing APP_STORE_CONNECT_API_PRIVATE_KEY_BASE64" >&2; exit 1; }
 
       - name: Install signing certificate and notarization profile
         if: steps.release.outputs.unsigned != 'true'
         env:
           SIGNING_CERTIFICATE: ${{ secrets.DEVELOPER_ID_APPLICATION_P12_BASE64 }}
           SIGNING_PASSWORD: ${{ secrets.DEVELOPER_ID_APPLICATION_P12_PASSWORD }}
-          APPLE_ID: ${{ secrets.APPLE_ID }}
-          APPLE_PASSWORD: ${{ secrets.APPLE_APP_SPECIFIC_PASSWORD }}
-          APPLE_TEAM_ID: ${{ secrets.APPLE_TEAM_ID }}
+          ASC_KEY_ID: ${{ secrets.APP_STORE_CONNECT_API_KEY_ID }}
+          ASC_ISSUER_ID: ${{ secrets.APP_STORE_CONNECT_API_ISSUER_ID }}
+          ASC_PRIVATE_KEY: ${{ secrets.APP_STORE_CONNECT_API_PRIVATE_KEY_BASE64 }}
         run: |
           certificate_path="$RUNNER_TEMP/derived-developer-id.p12"
+          notary_key_path="$RUNNER_TEMP/AuthKey_${ASC_KEY_ID}.p8"
           keychain_path="$RUNNER_TEMP/derived-signing.keychain-db"
           keychain_password="$(openssl rand -hex 24)"
           printf '%s' "$SIGNING_CERTIFICATE" | /usr/bin/base64 -D > "$certificate_path"
+          printf '%s' "$ASC_PRIVATE_KEY" | /usr/bin/base64 -D > "$notary_key_path"
+          chmod 600 "$notary_key_path"
           security create-keychain -p "$keychain_password" "$keychain_path"
           security set-keychain-settings -lut 21600 "$keychain_path"
           security unlock-keychain -p "$keychain_password" "$keychain_path"
@@ -93,9 +96,9 @@ jobs:
           security list-keychains -d user -s "$keychain_path"
           security set-key-partition-list -S apple-tool:,apple: -k "$keychain_password" "$keychain_path"
           xcrun notarytool store-credentials derived-ci-notary \
-            --apple-id "$APPLE_ID" \
-            --password "$APPLE_PASSWORD" \
-            --team-id "$APPLE_TEAM_ID" \
+            --key "$notary_key_path" \
+            --key-id "$ASC_KEY_ID" \
+            --issuer "$ASC_ISSUER_ID" \
             --keychain "$keychain_path"
           echo "DERIVED_KEYCHAIN_PATH=$keychain_path" >> "$GITHUB_ENV"
 
