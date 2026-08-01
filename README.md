@@ -1,6 +1,6 @@
 <div align="center">
-  <h1>Derived</h1>
   <img src="docs/assets/derived-app-icon.png" width="180" alt="Derived app icon">
+      <h1>Derived</h1>
   <p>A native macOS menu-bar application for inspecting and removing storage created by Xcode, Simulator, and XCTest.</p>
   <p>
     <img src="https://img.shields.io/badge/macOS-26.4%2B-111827?logo=apple" alt="macOS 26.4 or later">
