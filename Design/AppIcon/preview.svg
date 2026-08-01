@@ -1,0 +1,33 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<svg xmlns="http://www.w3.org/2000/svg" width="1024" height="1024" viewBox="0 0 1024 1024">
+  <rect width="1024" height="1024" fill="#061A3B"/>
+  <rect x="64" y="352" width="896" height="320" rx="42" fill="#12151A"/>
+  <rect x="72" y="360" width="880" height="304" rx="35" fill="none" stroke="#3C424E" stroke-width="8"/>
+  <g fill="#F5BE3F">
+    <rect x="72" y="394" width="64" height="18" rx="5"/>
+    <rect x="72" y="420" width="64" height="18" rx="5"/>
+    <rect x="72" y="446" width="64" height="18" rx="5"/>
+    <rect x="72" y="472" width="64" height="18" rx="5"/>
+    <rect x="72" y="534" width="64" height="18" rx="5"/>
+    <rect x="72" y="560" width="64" height="18" rx="5"/>
+    <rect x="72" y="586" width="64" height="18" rx="5"/>
+    <rect x="72" y="612" width="64" height="18" rx="5"/>
+    <circle cx="916" cy="512" r="38"/>
+  </g>
+  <circle cx="916" cy="512" r="22" fill="#061A3B"/>
+  <rect x="164" y="404" width="120" height="216" rx="24" fill="#111827" stroke="#3B4250" stroke-width="8"/>
+  <defs>
+    <linearGradient id="capacity" gradientUnits="userSpaceOnUse" x1="314" y1="512" x2="674" y2="512">
+      <stop offset="0" stop-color="#30D158"/>
+      <stop offset="0.5" stop-color="#FFD60A"/>
+      <stop offset="1" stop-color="#FF453A"/>
+    </linearGradient>
+  </defs>
+  <g fill="url(#capacity)">
+    <rect x="314" y="404" width="120" height="216" rx="24"/>
+    <rect x="464" y="404" width="120" height="216" rx="24"/>
+    <path d="M638 404H674V620H638C624.745 620 614 609.255 614 596V428C614 414.745 624.745 404 638 404Z"/>
+  </g>
+  <rect x="614" y="404" width="120" height="216" rx="24" fill="none" stroke="#D6F0FF" stroke-width="10"/>
+  <rect x="764" y="404" width="120" height="216" rx="24" fill="none" stroke="#D6F0FF" stroke-width="10"/>
+</svg>

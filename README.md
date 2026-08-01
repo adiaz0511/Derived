@@ -1,6 +1,14 @@
-# Derived
-
-Derived is a native macOS menu-bar application for inspecting and removing storage created by Xcode, Simulator, and XCTest.
+<div align="center">
+  <h1>Derived</h1>
+  <img src="docs/assets/derived-app-icon.png" width="180" alt="Derived app icon">
+  <p>A native macOS menu-bar application for inspecting and removing storage created by Xcode, Simulator, and XCTest.</p>
+  <p>
+    <img src="https://img.shields.io/badge/macOS-26.4%2B-111827?logo=apple" alt="macOS 26.4 or later">
+    <img src="https://img.shields.io/badge/Swift_Tools-6.2-F05138?logo=swift&logoColor=white" alt="Swift tools 6.2">
+    <img src="https://img.shields.io/badge/CLI_%2B_MCP-0.2.0-0A84FF" alt="CLI and MCP version 0.2.0">
+    <img src="https://img.shields.io/badge/License-MIT-30D158" alt="MIT License">
+  </p>
+</div>
 
 > [!WARNING]
 > Derived is under active development. Cleanup is permanent and does not move files to the Trash. Review the selected category and confirmation message before deleting data.

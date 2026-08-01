@@ -1,0 +1,84 @@
+{
+  "fill" : {
+    "solid" : "srgb:0.02353,0.10196,0.23137,1.00000"
+  },
+  "groups" : [
+    {
+      "layers" : [
+        {
+          "fill" : {
+            "solid" : "srgb:0.06667,0.09412,0.15294,1.00000"
+          },
+          "glass" : true,
+          "image-name" : "01-controller.svg",
+          "name" : "01-controller"
+        },
+        {
+          "glass" : true,
+          "image-name" : "02-used-gradient.svg",
+          "name" : "02-used-gradient"
+        },
+        {
+          "fill" : {
+            "solid" : "srgb:0.83922,0.94118,1.00000,1.00000"
+          },
+          "glass" : true,
+          "image-name" : "03-cleared-nand.svg",
+          "name" : "03-cleared-nand"
+        }
+      ],
+      "name" : "02 Storage",
+      "shadow" : {
+        "kind" : "neutral",
+        "opacity" : 0.35
+      },
+      "translucency" : {
+        "enabled" : true,
+        "value" : 0.35
+      }
+    },
+    {
+      "layers" : [
+        {
+          "fill" : {
+            "solid" : "srgb:0.96078,0.74510,0.24706,1.00000"
+          },
+          "glass" : true,
+          "image-name" : "03-connectors.svg",
+          "name" : "03-connectors"
+        },
+        {
+          "fill" : {
+            "solid" : "srgb:0.23529,0.25882,0.30588,1.00000"
+          },
+          "glass" : true,
+          "image-name" : "02-pcb-outline.svg",
+          "name" : "02-pcb-outline"
+        },
+        {
+          "fill" : {
+            "solid" : "srgb:0.07059,0.08235,0.10196,1.00000"
+          },
+          "glass" : true,
+          "image-name" : "01-pcb.svg",
+          "name" : "01-pcb"
+        }
+      ],
+      "name" : "01 Base",
+      "shadow" : {
+        "kind" : "neutral",
+        "opacity" : 0.5
+      },
+      "translucency" : {
+        "enabled" : true,
+        "value" : 0.5
+      }
+    }
+  ],
+  "supported-platforms" : {
+    "circles" : [
+      "watchOS"
+    ],
+    "squares" : "shared"
+  }
+}

@@ -1,0 +1,14 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<svg xmlns="http://www.w3.org/2000/svg" width="1024" height="1024" viewBox="0 0 1024 1024">
+  <g fill="#000000">
+    <rect x="72" y="394" width="64" height="18" rx="5"/>
+    <rect x="72" y="420" width="64" height="18" rx="5"/>
+    <rect x="72" y="446" width="64" height="18" rx="5"/>
+    <rect x="72" y="472" width="64" height="18" rx="5"/>
+    <rect x="72" y="534" width="64" height="18" rx="5"/>
+    <rect x="72" y="560" width="64" height="18" rx="5"/>
+    <rect x="72" y="586" width="64" height="18" rx="5"/>
+    <rect x="72" y="612" width="64" height="18" rx="5"/>
+  </g>
+  <path fill="#000000" fill-rule="evenodd" d="M916 474A38 38 0 1 1 916 550A38 38 0 1 1 916 474ZM916 490A22 22 0 1 0 916 534A22 22 0 1 0 916 490Z"/>
+</svg>
