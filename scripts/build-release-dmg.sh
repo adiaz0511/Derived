@@ -92,7 +92,7 @@ mkdir -p "$output_dir" "$work_root/bin"
 typeset -a cli_slices mcp_slices
 for architecture in "${architectures[@]}"; do
   scratch_path="$work_root/swift-$architecture"
-  triple="$architecture-apple-macosx26.4"
+  triple="$architecture-apple-macosx14.0"
   swift build -c release --triple "$triple" --scratch-path "$scratch_path"
   bin_path="$(swift build -c release --triple "$triple" --scratch-path "$scratch_path" --show-bin-path)"
   cli_slices+=("$bin_path/derived")

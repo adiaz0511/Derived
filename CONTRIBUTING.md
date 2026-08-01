@@ -2,7 +2,7 @@
 
 ## Development setup
 
-1. Use macOS 26.4 or later and Xcode 26.4 or later.
+1. Use macOS 14.0 or later and Xcode 26.4 or later.
 2. Clone the repository and open `Derived.xcodeproj`.
 3. Build the `Derived` scheme.
 4. Run the complete test suite before submitting a change.

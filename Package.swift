@@ -4,7 +4,7 @@ import PackageDescription
 
 let package = Package(
     name: "Derived",
-    platforms: [.macOS("26.4")],
+    platforms: [.macOS("14.0")],
     products: [
         .library(name: "DerivedCore", targets: ["DerivedCore"]),
         .executable(name: "derived", targets: ["DerivedCLI"]),

@@ -3,7 +3,7 @@
       <h1>Derived</h1>
   <p>A native macOS menu-bar application for inspecting and removing storage created by Xcode, Simulator, and XCTest.</p>
   <p>
-    <img src="https://img.shields.io/badge/macOS-26.4%2B-111827?logo=apple" alt="macOS 26.4 or later">
+    <img src="https://img.shields.io/badge/macOS-14.0%2B-111827?logo=apple" alt="macOS 14.0 or later">
     <img src="https://img.shields.io/badge/Swift_Tools-6.2-F05138?logo=swift&logoColor=white" alt="Swift tools 6.2">
     <img src="https://img.shields.io/badge/CLI_%2B_MCP-0.2.0-0A84FF" alt="CLI and MCP version 0.2.0">
     <img src="https://img.shields.io/badge/License-MIT-30D158" alt="MIT License">
@@ -84,7 +84,7 @@ See [Safety](docs/SAFETY.md) for the complete deletion model and approved paths.
 
 ## Requirements
 
-- macOS 26.4 or later
+- macOS 14.0 or later
 - Xcode 26.4 or later
 
 The DMG contains a prebuilt application, so users do not need to compile Derived in Xcode.
