@@ -1,0 +1,53 @@
+{
+  "manifest_version": "0.3",
+  "name": "derived-mcp",
+  "display_name": "Derived",
+  "version": "0.2.0",
+  "description": "Inspect and safely clean local Xcode, Simulator, and XCTest storage.",
+  "long_description": "Derived scans local developer storage and requires an expiring cleanup plan plus explicit confirmation before permanent deletion.",
+  "author": {
+    "name": "Arturo Diaz",
+    "url": "https://github.com/adiaz0511"
+  },
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/adiaz0511/Derived.git"
+  },
+  "homepage": "https://github.com/adiaz0511/Derived",
+  "documentation": "https://github.com/adiaz0511/Derived/blob/main/docs/AGENT_INTEGRATIONS.md",
+  "support": "https://github.com/adiaz0511/Derived/issues",
+  "icon": "icon.png",
+  "server": {
+    "type": "binary",
+    "entry_point": "server/derived-mcp",
+    "mcp_config": {
+      "command": "${__dirname}/server/derived-mcp",
+      "args": [],
+      "env": {}
+    }
+  },
+  "tools": [
+    {
+      "name": "scan",
+      "description": "Scan local Xcode, Simulator, and XCTest storage without deleting anything."
+    },
+    {
+      "name": "list_candidates",
+      "description": "List cleanup candidates from a prior Derived scan."
+    },
+    {
+      "name": "prepare_cleanup",
+      "description": "Prepare an expiring cleanup plan without deleting files."
+    },
+    {
+      "name": "execute_cleanup",
+      "description": "Permanently delete an explicitly confirmed Derived cleanup plan."
+    }
+  ],
+  "tools_generated": false,
+  "keywords": ["xcode", "simulator", "storage", "cleanup", "macos"],
+  "license": "MIT",
+  "compatibility": {
+    "platforms": ["darwin"]
+  }
+}

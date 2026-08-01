@@ -1,0 +1,142 @@
+name: Release
+
+on:
+  push:
+    tags:
+      - "v*"
+  workflow_dispatch:
+    inputs:
+      version:
+        description: "Release version without the v prefix"
+        required: true
+        type: string
+      unsigned:
+        description: "Build an unsigned validation artifact without publishing"
+        required: true
+        default: true
+        type: boolean
+
+permissions:
+  contents: write
+
+jobs:
+  dmg:
+    runs-on: macos-26
+    timeout-minutes: 45
+
+    steps:
+      - name: Check out repository
+        uses: actions/checkout@v5
+        with:
+          fetch-depth: 0
+
+      - name: Resolve release settings
+        id: release
+        env:
+          EVENT_NAME: ${{ github.event_name }}
+          TAG_NAME: ${{ github.ref_name }}
+          INPUT_VERSION: ${{ inputs.version }}
+          INPUT_UNSIGNED: ${{ inputs.unsigned }}
+        run: |
+          if [[ "$EVENT_NAME" == "push" ]]; then
+            [[ "$TAG_NAME" == v* ]] || exit 1
+            echo "version=${TAG_NAME#v}" >> "$GITHUB_OUTPUT"
+            echo "unsigned=false" >> "$GITHUB_OUTPUT"
+          else
+            echo "version=$INPUT_VERSION" >> "$GITHUB_OUTPUT"
+            echo "unsigned=$INPUT_UNSIGNED" >> "$GITHUB_OUTPUT"
+          fi
+
+      - name: Test Swift package
+        run: swift test
+
+      - name: Test MCP protocol and CLI
+        run: scripts/test-agent-protocol.sh
+
+      - name: Test installer and publication metadata
+        run: |
+          scripts/test-agent-tools-install.sh
+          scripts/test-publication-metadata.sh
+
+      - name: Validate signing secrets
+        if: steps.release.outputs.unsigned != 'true'
+        env:
+          SIGNING_CERTIFICATE: ${{ secrets.DEVELOPER_ID_APPLICATION_P12_BASE64 }}
+          SIGNING_PASSWORD: ${{ secrets.DEVELOPER_ID_APPLICATION_P12_PASSWORD }}
+          APPLE_ID: ${{ secrets.APPLE_ID }}
+          APPLE_PASSWORD: ${{ secrets.APPLE_APP_SPECIFIC_PASSWORD }}
+          APPLE_TEAM_ID: ${{ secrets.APPLE_TEAM_ID }}
+        run: |
+          [[ -n "$SIGNING_CERTIFICATE" ]] || { echo "Missing DEVELOPER_ID_APPLICATION_P12_BASE64" >&2; exit 1; }
+          [[ -n "$SIGNING_PASSWORD" ]] || { echo "Missing DEVELOPER_ID_APPLICATION_P12_PASSWORD" >&2; exit 1; }
+          [[ -n "$APPLE_ID" ]] || { echo "Missing APPLE_ID" >&2; exit 1; }
+          [[ -n "$APPLE_PASSWORD" ]] || { echo "Missing APPLE_APP_SPECIFIC_PASSWORD" >&2; exit 1; }
+          [[ -n "$APPLE_TEAM_ID" ]] || { echo "Missing APPLE_TEAM_ID" >&2; exit 1; }
+
+      - name: Install signing certificate and notarization profile
+        if: steps.release.outputs.unsigned != 'true'
+        env:
+          SIGNING_CERTIFICATE: ${{ secrets.DEVELOPER_ID_APPLICATION_P12_BASE64 }}
+          SIGNING_PASSWORD: ${{ secrets.DEVELOPER_ID_APPLICATION_P12_PASSWORD }}
+          APPLE_ID: ${{ secrets.APPLE_ID }}
+          APPLE_PASSWORD: ${{ secrets.APPLE_APP_SPECIFIC_PASSWORD }}
+          APPLE_TEAM_ID: ${{ secrets.APPLE_TEAM_ID }}
+        run: |
+          certificate_path="$RUNNER_TEMP/derived-developer-id.p12"
+          keychain_path="$RUNNER_TEMP/derived-signing.keychain-db"
+          keychain_password="$(openssl rand -hex 24)"
+          printf '%s' "$SIGNING_CERTIFICATE" | /usr/bin/base64 -D > "$certificate_path"
+          security create-keychain -p "$keychain_password" "$keychain_path"
+          security set-keychain-settings -lut 21600 "$keychain_path"
+          security unlock-keychain -p "$keychain_password" "$keychain_path"
+          security import "$certificate_path" -P "$SIGNING_PASSWORD" -A -t cert -f pkcs12 -k "$keychain_path"
+          security list-keychains -d user -s "$keychain_path"
+          security set-key-partition-list -S apple-tool:,apple: -k "$keychain_password" "$keychain_path"
+          xcrun notarytool store-credentials derived-ci-notary \
+            --apple-id "$APPLE_ID" \
+            --password "$APPLE_PASSWORD" \
+            --team-id "$APPLE_TEAM_ID" \
+            --keychain "$keychain_path"
+          echo "DERIVED_KEYCHAIN_PATH=$keychain_path" >> "$GITHUB_ENV"
+
+      - name: Build unsigned validation DMG
+        if: steps.release.outputs.unsigned == 'true'
+        run: scripts/build-release-dmg.sh --version "${{ steps.release.outputs.version }}" --architectures universal --unsigned
+
+      - name: Build, sign, and notarize release DMG
+        if: steps.release.outputs.unsigned != 'true'
+        env:
+          DERIVED_NOTARY_PROFILE: derived-ci-notary
+          DERIVED_NOTARY_KEYCHAIN: ${{ env.DERIVED_KEYCHAIN_PATH }}
+        run: |
+          identity="$(security find-identity -v -p codesigning "$DERIVED_KEYCHAIN_PATH" | sed -n 's/.*"\(Developer ID Application:.*\)"/\1/p' | head -1)"
+          [[ -n "$identity" ]] || { echo "Developer ID Application identity was not imported" >&2; exit 1; }
+          scripts/build-release-dmg.sh \
+            --version "${{ steps.release.outputs.version }}" \
+            --architectures universal \
+            --sign-identity "$identity" \
+            --notarize
+
+      - name: Upload manual validation artifact
+        if: github.event_name == 'workflow_dispatch'
+        uses: actions/upload-artifact@v4
+        with:
+          name: Derived-${{ steps.release.outputs.version }}-manual
+          path: |
+            dist/*.dmg
+            dist/*.mcpb
+            dist/*.sha256
+            dist/server.json
+          if-no-files-found: error
+
+      - name: Publish GitHub release
+        if: github.event_name == 'push'
+        uses: softprops/action-gh-release@v2
+        with:
+          generate_release_notes: true
+          fail_on_unmatched_files: true
+          files: |
+            dist/*.dmg
+            dist/*.mcpb
+            dist/*.sha256
+            dist/server.json

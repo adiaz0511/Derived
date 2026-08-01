@@ -1,0 +1,22 @@
+#!/bin/zsh
+
+set -euo pipefail
+
+typeset -a candidates
+if [[ -n "${DERIVED_MCP_PATH:-}" ]]; then
+  candidates+=("$DERIVED_MCP_PATH")
+fi
+candidates+=(
+  "$HOME/.local/bin/derived-mcp"
+  "/opt/homebrew/bin/derived-mcp"
+  "/usr/local/bin/derived-mcp"
+)
+
+for candidate in "${candidates[@]}"; do
+  if [[ -x "$candidate" ]]; then
+    exec "$candidate"
+  fi
+done
+
+print -u2 "Derived MCP is not installed. Install the Derived agent tools from Derived.dmg first."
+exit 1

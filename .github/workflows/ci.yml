@@ -25,10 +25,22 @@ jobs:
       - name: Test MCP protocol and CLI entry points
         run: scripts/test-agent-protocol.sh
 
+      - name: Test agent-tool installer and uninstaller
+        run: scripts/test-agent-tools-install.sh
+
+      - name: Test publication metadata
+        run: scripts/test-publication-metadata.sh
+
       - name: Build and package release agent tools
         run: |
           scripts/package-agent-tools.sh 0.2.0
           test -f "dist/DerivedAgentTools-0.2.0-macOS-$(uname -m).tar.gz"
+
+      - name: Build MCP bundle
+        run: |
+          scripts/package-mcpb.sh 0.2.0
+          test -f "dist/Derived-MCP-0.2.0-macOS-$(uname -m).mcpb"
+          shasum -a 256 -c "dist/Derived-MCP-0.2.0-macOS-$(uname -m).mcpb.sha256"
 
       - name: Verify the existing application
         run: scripts/verify-app-regression.sh

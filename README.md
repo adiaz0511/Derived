@@ -13,6 +13,37 @@
 > [!WARNING]
 > Derived is under active development. Cleanup is permanent and does not move files to the Trash. Review the selected category and confirmation message before deleting data.
 
+## Install
+
+Derived is distributed as a notarized disk image so users do not need Xcode.
+
+1. Download `Derived.dmg` from the [latest GitHub release](https://github.com/adiaz0511/Derived/releases/latest).
+2. Open the disk image.
+3. Drag `Derived.app` to the Applications folder.
+4. Open Derived from Applications.
+
+### Add Derived to Codex
+
+The disk image includes the precompiled CLI, MCP server, and `derived-cleanup` skill.
+
+1. Open `Derived.dmg`.
+2. Double-click **Install Derived Agent Tools**.
+3. Restart Codex.
+4. Verify the installation:
+
+```sh
+"$HOME/.local/bin/derived" --version
+codex mcp get derived
+```
+
+Then ask Codex:
+
+```text
+Use $derived-cleanup to scan my developer storage.
+```
+
+The installer uses only locations owned by the current user. It does not request administrator access. See [Agent Integrations](docs/AGENT_INTEGRATIONS.md) for manual installation, Claude Code, Cursor, and uninstall instructions.
+
 ## Features
 
 - Reports Mac storage usage and reclaimable developer data.
@@ -35,7 +66,7 @@ derived scan
 derived scan --json
 ```
 
-From the repository, build the release products, install the CLI and MCP server, install the portable Codex skill, and register the MCP server with:
+For repository development, build the release products, install the CLI and MCP server, install the portable Codex skill, and register the MCP server with:
 
 ```sh
 scripts/install-codex-agent-tools.sh
@@ -55,6 +86,8 @@ See [Safety](docs/SAFETY.md) for the complete deletion model and approved paths.
 
 - macOS 26.4 or later
 - Xcode 26.4 or later
+
+The DMG contains a prebuilt application, so users do not need to compile Derived in Xcode.
 
 The application is intentionally not sandboxed because it manages files under `~/Library/Developer` and invokes `xcrun simctl`.
 
@@ -121,6 +154,8 @@ Derived operates locally. It does not include analytics, advertising, accounts, 
 ## Contributing
 
 Contributions are welcome after the repository becomes public. Read [Contributing](CONTRIBUTING.md) before changing scanner, validation, or deletion behavior.
+
+Maintainers should follow [Releasing Derived](docs/RELEASING.md) for signing, notarization, DMG generation, and MCP publication.
 
 ## License
 

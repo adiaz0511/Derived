@@ -1,0 +1,21 @@
+{
+  "$schema": "https://static.modelcontextprotocol.io/schemas/2025-12-11/server.schema.json",
+  "name": "io.github.adiaz0511/derived",
+  "title": "Derived",
+  "description": "Inspect and safely clean local Xcode, Simulator, and XCTest storage.",
+  "repository": {
+    "url": "https://github.com/adiaz0511/Derived",
+    "source": "github"
+  },
+  "version": "0.2.0",
+  "packages": [
+    {
+      "registryType": "mcpb",
+      "identifier": "https://github.com/adiaz0511/Derived/releases/download/v0.2.0/Derived-MCP-0.2.0-macOS-arm64.mcpb",
+      "fileSha256": "6b1cd2376392bad85fb990062c9c214c8654de0bf19472d4316c65a2426d97f0",
+      "transport": {
+        "type": "stdio"
+      }
+    }
+  ]
+}

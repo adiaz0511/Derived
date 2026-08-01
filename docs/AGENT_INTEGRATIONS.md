@@ -9,7 +9,78 @@ Both products use the same scanner, validation, and cleanup coordinator as the m
 
 The current agent-tools version is `0.2.0`. The CLI reports it through `derived --version`, and the MCP server reports the same value in its initialization handshake.
 
-## Build
+## Install from the disk image
+
+The public disk image contains the signed application and precompiled agent tools. Swift and Xcode are not required for installation.
+
+First, install the application:
+
+1. Download `Derived.dmg` from the [latest GitHub release](https://github.com/adiaz0511/Derived/releases/latest).
+2. Open the disk image.
+3. Drag `Derived.app` to the Applications folder.
+4. Open Derived from Applications.
+
+### Codex: recommended installation
+
+The recommended installer performs four user-scoped actions:
+
+1. It installs `derived` and `derived-mcp` in `~/.local/bin`.
+2. It installs the `derived-cleanup` skill in `~/.codex/skills/derived-cleanup`.
+3. It registers `~/.local/bin/derived-mcp` as the `derived` MCP server.
+4. It reports the installed version and verification commands.
+
+To install:
+
+1. Open `Derived.dmg`.
+2. Double-click **Install Derived Agent Tools**.
+3. Restart Codex.
+4. Run the verification commands:
+
+```sh
+"$HOME/.local/bin/derived" --version
+codex mcp get derived
+```
+
+Then test the workflow with this request:
+
+```text
+Use $derived-cleanup to scan my developer storage.
+```
+
+The installer does not require administrator access. It replaces only the existing Derived MCP registration and `derived-cleanup` skill.
+
+### Codex: manual installation
+
+Keep `Derived.dmg` mounted. Then run:
+
+```sh
+mkdir -p "$HOME/.local/bin" "$HOME/.codex/skills"
+install -m 755 "/Volumes/Derived/Agent Tools/bin/derived" "$HOME/.local/bin/derived"
+install -m 755 "/Volumes/Derived/Agent Tools/bin/derived-mcp" "$HOME/.local/bin/derived-mcp"
+rm -rf "$HOME/.codex/skills/derived-cleanup"
+ditto "/Volumes/Derived/Agent Tools/Integrations/derived-cleanup" \
+  "$HOME/.codex/skills/derived-cleanup"
+codex mcp remove derived 2>/dev/null || true
+codex mcp add derived -- "$HOME/.local/bin/derived-mcp"
+```
+
+Restart Codex and run the same verification commands shown above.
+
+## Uninstall from Codex
+
+The easiest method is to open `Derived.dmg` and double-click **Uninstall Derived Agent Tools**.
+
+For manual removal, run:
+
+```sh
+codex mcp remove derived 2>/dev/null || true
+rm -f "$HOME/.local/bin/derived" "$HOME/.local/bin/derived-mcp"
+rm -rf "$HOME/.codex/skills/derived-cleanup"
+```
+
+These steps do not remove `Derived.app`, application preferences, scan history, or cleanup history. Remove the application from the Applications folder separately if it is no longer required.
+
+## Build from source
 
 ```sh
 swift build -c release
@@ -50,15 +121,21 @@ derived delete --plan <plan-id> --confirm "<exact phrase>" --json
 
 Scan identifiers expire after 30 minutes. Cleanup plans expire after 10 minutes and can be executed once. Deletion is permanent.
 
-## Codex
+## Codex development installation
 
-From the repository, build and install the release CLI, MCP server, and skill, then replace the existing Codex MCP registration:
+From the repository, first build the release CLI and MCP server:
+
+```sh
+swift build -c release
+```
+
+Then install both executables and the skill, and replace the existing Codex MCP registration:
 
 ```sh
 scripts/install-codex-agent-tools.sh
 ```
 
-The script installs `derived` and `derived-mcp` in `~/.local/bin`, installs the skill in `~/.codex/skills/derived-cleanup`, and registers the installed MCP executable as `derived`.
+The script uses the precompiled products in `.build/release`. It installs `derived` and `derived-mcp` in `~/.local/bin`, installs the skill in `~/.codex/skills/derived-cleanup`, and registers the installed MCP executable as `derived`.
 
 Verify the installation with:
 
@@ -67,7 +144,7 @@ derived --version
 codex mcp get derived
 ```
 
-To configure the components manually, add the local server:
+To register an already installed server manually, run:
 
 ```sh
 codex mcp add derived -- "$HOME/.local/bin/derived-mcp"
@@ -79,15 +156,34 @@ Agents should use the Derived MCP tools first. If the MCP server is unavailable,
 
 ## Claude Code
 
+First, install the precompiled executables from the mounted disk image:
+
+```sh
+mkdir -p "$HOME/.local/bin"
+install -m 755 "/Volumes/Derived/Agent Tools/bin/derived" "$HOME/.local/bin/derived"
+install -m 755 "/Volumes/Derived/Agent Tools/bin/derived-mcp" "$HOME/.local/bin/derived-mcp"
+```
+
 Add the server for the current user:
 
 ```sh
-claude mcp add derived --scope user -- /absolute/path/to/derived-mcp
+claude mcp add derived --scope user -- "$HOME/.local/bin/derived-mcp"
 ```
 
-Copy `Integrations/derived-cleanup` to `~/.claude/skills/derived-cleanup` to install the optional workflow skill.
+Copy the optional workflow skill from the mounted image:
+
+```sh
+mkdir -p "$HOME/.claude/skills"
+rm -rf "$HOME/.claude/skills/derived-cleanup"
+ditto "/Volumes/Derived/Agent Tools/Integrations/derived-cleanup" \
+  "$HOME/.claude/skills/derived-cleanup"
+```
+
+Verify the server with `claude mcp get derived`.
 
 ## Cursor
+
+First, copy `derived-mcp` from the mounted disk image to `~/.local/bin` as shown in the Claude Code section.
 
 Add the server to `~/.cursor/mcp.json`:
 
@@ -95,14 +191,14 @@ Add the server to `~/.cursor/mcp.json`:
 {
   "mcpServers": {
     "derived": {
-      "command": "/absolute/path/to/derived-mcp",
+      "command": "/Users/your-name/.local/bin/derived-mcp",
       "args": []
     }
   }
 }
 ```
 
-Copy `Integrations/derived-cleanup` to `~/.cursor/skills/derived-cleanup` to install the optional workflow skill.
+Copy `/Volumes/Derived/Agent Tools/Integrations/derived-cleanup` to `~/.cursor/skills/derived-cleanup` to install the optional workflow skill. Restart Cursor, open its MCP settings, and confirm that `derived` is connected.
 
 ## Interaction model
 

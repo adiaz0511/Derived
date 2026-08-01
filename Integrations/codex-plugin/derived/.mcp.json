@@ -1,0 +1,9 @@
+{
+  "mcpServers": {
+    "derived": {
+      "command": "./scripts/launch-derived-mcp",
+      "args": [],
+      "cwd": "."
+    }
+  }
+}

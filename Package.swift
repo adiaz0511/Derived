@@ -16,6 +16,7 @@ let package = Package(
             path: "Derived",
             exclude: [
                 "App",
+                "AppIcon.icon",
                 "Assets.xcassets",
                 "DerivedApp.swift",
                 "Features",

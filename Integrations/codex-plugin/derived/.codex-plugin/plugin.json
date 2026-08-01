@@ -1,0 +1,33 @@
+{
+  "name": "derived",
+  "version": "0.2.0",
+  "description": "Inspect and safely clean Xcode, Simulator, and XCTest storage with Derived.",
+  "author": {
+    "name": "Arturo Diaz",
+    "url": "https://github.com/adiaz0511"
+  },
+  "homepage": "https://github.com/adiaz0511/Derived",
+  "repository": "https://github.com/adiaz0511/Derived",
+  "license": "MIT",
+  "keywords": ["xcode", "storage", "cleanup", "mcp", "macos"],
+  "skills": "./skills/",
+  "interface": {
+    "displayName": "Derived",
+    "shortDescription": "Inspect and clean local Xcode storage safely.",
+    "longDescription": "Derived scans local Xcode, Simulator, and XCTest storage. It provides read-only inspection, explicit cleanup preparation, and confirmation-gated deletion through a local MCP server and CLI.",
+    "developerName": "Arturo Diaz",
+    "category": "Productivity",
+    "capabilities": ["Read", "Write"],
+    "websiteURL": "https://github.com/adiaz0511/Derived",
+    "privacyPolicyURL": "https://github.com/adiaz0511/Derived/blob/main/PRIVACY.md",
+    "defaultPrompt": [
+      "Scan my Xcode storage without deleting anything.",
+      "Show the largest safe cleanup candidates.",
+      "Prepare a cleanup plan for Derived Data."
+    ],
+    "brandColor": "#34C759",
+    "composerIcon": "./assets/derived-app-icon.png",
+    "logo": "./assets/derived-app-icon.png"
+  },
+  "mcpServers": "./.mcp.json"
+}
