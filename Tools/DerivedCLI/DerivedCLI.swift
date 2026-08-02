@@ -37,6 +37,9 @@ struct DerivedCLI {
                     try await service.executeCleanup(planID: planID, confirmationPhrase: confirmation)
                 }
                 print(try json ? CLIOutput.json(result) : CLIOutput.result(result))
+            case .integrations(let integrationCommand):
+                let manager = IntegrationManager()
+                print(try manager.run(integrationCommand))
             }
         } catch {
             FileHandle.standardError.write(Data("derived: \(error.localizedDescription)\n".utf8))
@@ -53,8 +56,12 @@ struct DerivedCLI {
       derived list --scan <UUID> --category <category> [--offset N] [--limit N] [--json]
       derived prepare --scan <UUID> [--item <candidate-id>]... [--category <category>]... [--json]
       derived delete --plan <UUID> --confirm <exact-phrase> [--json]
+      derived integrations install [--client codex|claude|cursor|all]
+      derived integrations status
+      derived integrations update
 
     Cleanup is permanent. A fresh scan and cleanup plan are required before deletion.
     Interactive `prepare` output prints the exact confirmation phrase and delete command.
+    Integration commands install or update the local MCP server and workflow skill.
     """
 }

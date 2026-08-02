@@ -2,6 +2,7 @@ import SwiftUI
 
 struct MenuBarPanel: View {
     let model: AppModel
+    let softwareUpdateController: SoftwareUpdateController
     @State private var cleanupRequest: CleanupRequest?
 
     var body: some View {
@@ -43,7 +44,10 @@ struct MenuBarPanel: View {
             }
 
             Divider()
-            PanelFooter(model: model)
+            PanelFooter(
+                model: model,
+                softwareUpdateController: softwareUpdateController
+            )
         }
         .frame(width: DesignMetrics.panelWidth, height: DesignMetrics.panelHeight)
         .background(.ultraThinMaterial)

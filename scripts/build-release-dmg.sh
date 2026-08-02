@@ -13,6 +13,7 @@ unsigned=false
 notarize=false
 dry_run=false
 keep_work=false
+sparkle_private_key=""
 
 function usage {
   cat <<'EOF'
@@ -27,6 +28,7 @@ Options:
   --unsigned                       Build without signing or notarization.
   --dry-run                        Validate options and print the release plan.
   --keep-work                      Retain the temporary build directory.
+  --sparkle-private-key PATH       Generate a signed Sparkle appcast using this private key.
 EOF
 }
 
@@ -41,6 +43,7 @@ while (( $# > 0 )); do
     --unsigned) unsigned=true; shift ;;
     --dry-run) dry_run=true; shift ;;
     --keep-work) keep_work=true; shift ;;
+    --sparkle-private-key) sparkle_private_key="${2:A}"; shift 2 ;;
     -h|--help) usage; exit 0 ;;
     *) print -u2 "Unknown option: $1"; usage >&2; exit 2 ;;
   esac
@@ -49,6 +52,10 @@ done
 [[ -n "$version" ]] || { print -u2 "--version is required."; exit 2; }
 [[ "$version" =~ '^[0-9]+\.[0-9]+\.[0-9]+([.-][A-Za-z0-9.-]+)?$' ]] || { print -u2 "Invalid version: $version"; exit 2; }
 [[ "$architecture_mode" == native || "$architecture_mode" == universal ]] || { print -u2 "Architectures must be native or universal."; exit 2; }
+if [[ -n "$sparkle_private_key" && ! -f "$sparkle_private_key" ]]; then
+  print -u2 "Sparkle private key does not exist: $sparkle_private_key"
+  exit 2
+fi
 
 if $unsigned; then
   sign_identity=""
@@ -120,6 +127,17 @@ fi
 chmod 755 "$work_root/bin/derived" "$work_root/bin/derived-mcp"
 
 app_derived_data="$work_root/xcode"
+typeset -a app_signing_settings
+if [[ -n "$sign_identity" ]]; then
+  app_signing_settings=(
+    CODE_SIGNING_ALLOWED=YES
+    CODE_SIGNING_REQUIRED=YES
+    CODE_SIGN_STYLE=Manual
+    CODE_SIGN_IDENTITY="$sign_identity"
+  )
+else
+  app_signing_settings=(CODE_SIGNING_ALLOWED=NO)
+fi
 xcodebuild -quiet \
   -project Derived.xcodeproj \
   -scheme Derived \
@@ -129,7 +147,8 @@ xcodebuild -quiet \
   ARCHS="${architectures[*]}" \
   ONLY_ACTIVE_ARCH=NO \
   MARKETING_VERSION="$version" \
-  CODE_SIGNING_ALLOWED=NO \
+  CURRENT_PROJECT_VERSION="${version%%-*}" \
+  "${app_signing_settings[@]}" \
   build
 
 readonly app_path="$app_derived_data/Build/Products/Release/Derived.app"
@@ -151,7 +170,6 @@ if [[ -n "$sign_identity" ]]; then
     codesign --force --options runtime --timestamp --sign "$sign_identity" "$binary"
     codesign --verify --strict --verbose=2 "$binary"
   done
-  codesign --force --options runtime --timestamp --sign "$sign_identity" "$app_path"
   codesign --verify --deep --strict --verbose=2 "$app_path"
 fi
 
@@ -214,6 +232,8 @@ if $notarize; then
   xcrun notarytool submit "$dmg_path" "${notary_auth[@]}" --wait
   xcrun stapler staple "$dmg_path"
   xcrun stapler validate "$dmg_path"
+  xcrun stapler staple "$app_path"
+  xcrun stapler validate "$app_path"
   spctl --assess --type open --context context:primary-signature --verbose=2 "$dmg_path"
 fi
 
@@ -222,6 +242,29 @@ fi
   shasum -a 256 "$artifact_name" > "$artifact_name.sha256"
 )
 scripts/verify-portable-checksums.sh "$dmg_path.sha256"
+
+if [[ -n "$sparkle_private_key" ]]; then
+  readonly generate_appcast="$(find "$app_derived_data/SourcePackages/artifacts" -path '*/bin/generate_appcast' -type f -perm -111 -print -quit)"
+  [[ -x "$generate_appcast" ]] || { print -u2 "Sparkle generate_appcast was not found in the resolved package."; exit 1; }
+  readonly appcast_root="$work_root/appcast"
+  readonly sparkle_output="$output_dir/sparkle"
+  readonly sparkle_archive_name="Derived-${version}-macOS-${architecture_mode}.zip"
+  mkdir -p "$appcast_root"
+  ditto -c -k --sequesterRsrc --keepParent "$app_path" "$appcast_root/$sparkle_archive_name"
+  "$generate_appcast" \
+    --ed-key-file "$sparkle_private_key" \
+    --download-url-prefix "https://adiaz0511.github.io/Derived/" \
+    --link "https://github.com/adiaz0511/Derived" \
+    --maximum-deltas 0 \
+    -o "$appcast_root/appcast.xml" \
+    "$appcast_root"
+  rm -rf "$sparkle_output"
+  mkdir -p "$sparkle_output"
+  cp "$appcast_root/appcast.xml" "$appcast_root/$sparkle_archive_name" "$sparkle_output/"
+  print "Created $sparkle_output/appcast.xml"
+  print "Created $sparkle_output/$sparkle_archive_name"
+fi
+
 if [[ "$architecture_mode" == native ]]; then
   readonly mcp_architecture_label="$architectures[1]"
 else

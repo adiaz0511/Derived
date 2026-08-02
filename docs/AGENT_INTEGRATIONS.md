@@ -9,6 +9,33 @@ Both products use the same scanner, validation, and cleanup coordinator as the m
 
 The current agent-tools version is `1.0.2`. The CLI reports it through `derived --version`, and the MCP server reports the same value in its initialization handshake.
 
+## Install with Homebrew
+
+Homebrew installs the agent tools independently from the Derived application:
+
+```sh
+brew tap adiaz0511/derived
+brew install --cask derived-tools
+derived integrations install
+```
+
+The integration command detects Codex, Claude Code, and Cursor. It installs the portable skill and registers the Homebrew-managed `derived-mcp` executable. Configure one client explicitly when required:
+
+```sh
+derived integrations install --client codex
+derived integrations install --client claude
+derived integrations install --client cursor
+```
+
+Inspect or update the installation with:
+
+```sh
+derived integrations status
+derived integrations update
+```
+
+`derived integrations update` runs the Homebrew upgrade and refreshes detected client configurations. DMG installations continue to update through **Derived Agent Tools**.
+
 ## Install from the disk image
 
 The public disk image contains the signed application and precompiled agent tools. Swift and Xcode are not required for installation.

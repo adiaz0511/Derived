@@ -27,7 +27,21 @@ Use Derived through the macOS app, the `derived` CLI, or the local `derived-mcp`
 
 ## Install the macOS app
 
-Derived is distributed as a signed and notarized universal DMG.
+### Homebrew (recommended)
+
+```sh
+brew tap adiaz0511/derived
+brew install --cask derived
+```
+
+Update the app with:
+
+```sh
+brew update
+brew upgrade --cask derived
+```
+
+### Disk image
 
 1. Download the DMG from the [latest GitHub release](https://github.com/adiaz0511/Derived/releases/latest).
 2. Open the disk image.
@@ -36,40 +50,34 @@ Derived is distributed as a signed and notarized universal DMG.
 
 ## Install the CLI and MCP server
 
-The DMG includes universal builds of `derived` and `derived-mcp`. Installing the macOS app is not required to use these tools.
+The agent tools include the `derived` CLI, the `derived-mcp` server, and the `derived-cleanup` skill. The macOS app is not required.
 
-### Codex installer
-
-**Derived Agent Tools** installs the CLI, MCP server, and `derived-cleanup` skill for the current user. It also registers the MCP server with Codex.
-
-1. Install Codex and confirm that the `codex` command is available.
-2. Open the latest Derived DMG.
-3. Open **Derived Agent Tools**.
-4. Select **Install for Codex**.
-5. Restart Codex.
-
-The installer writes only to user-owned locations and does not require administrator access.
-
-| Component | Installed location |
-|---|---|
-| CLI | `~/.local/bin/derived` |
-| MCP server | `~/.local/bin/derived-mcp` |
-| Codex skill | `~/.codex/skills/derived-cleanup` |
-| MCP registration | Codex configuration under `~/.codex` |
-
-After installation, eject the DMG. The CLI, MCP server, and skill do not require the DMG or `Derived.app`. To update them, download the latest DMG and run **Derived Agent Tools** again. To remove them, open **Derived Agent Tools** and select **Remove**.
-
-### Manual binary installation
-
-Keep the DMG mounted and copy the precompiled binaries:
+### Homebrew (recommended)
 
 ```sh
-mkdir -p "$HOME/.local/bin"
-install -m 755 "/Volumes/Derived/.agent-tools/bin/derived" "$HOME/.local/bin/derived"
-install -m 755 "/Volumes/Derived/.agent-tools/bin/derived-mcp" "$HOME/.local/bin/derived-mcp"
+brew tap adiaz0511/derived
+brew install --cask derived-tools
+derived integrations install
 ```
 
-Add `~/.local/bin` to `PATH` if your shell does not already include it.
+`derived integrations install` detects Codex, Claude Code, and Cursor on the Mac. It registers the MCP server and installs the skill for each detected client.
+
+Update the tools and refresh their integrations with:
+
+```sh
+derived integrations update
+```
+
+### Disk image
+
+The [latest Derived DMG](https://github.com/adiaz0511/Derived/releases/latest) also includes **Derived Agent Tools** for installation without Homebrew.
+
+1. Open the DMG.
+2. Open **Derived Agent Tools**.
+3. Select **Install for Codex**.
+4. Restart Codex.
+
+To update a DMG installation, download the latest DMG and run **Derived Agent Tools** again.
 
 ### MCPB installation
 
@@ -77,60 +85,20 @@ Clients that support MCPB bundles can install `Derived-MCP-VERSION-macOS-univers
 
 ## Use Derived with coding agents
 
-### Codex
-
-After using **Derived Agent Tools**, verify the installation:
+Check which clients are configured:
 
 ```sh
 derived --version
-codex mcp get derived
+derived integrations status
 ```
 
-Then start a new Codex session and ask:
+Then start a new session in Codex, Claude Code, or Cursor and ask:
 
 ```text
 Use $derived-cleanup to scan my developer storage.
 ```
 
-The skill directs Codex to use the MCP server first and fall back to structured CLI output when MCP is unavailable.
-
-### Claude Code
-
-First, complete the manual binary installation while the DMG is mounted. Then register the MCP server:
-
-```sh
-claude mcp add derived --scope user -- "$HOME/.local/bin/derived-mcp"
-```
-
-Install the optional workflow skill:
-
-```sh
-mkdir -p "$HOME/.claude/skills"
-rm -rf "$HOME/.claude/skills/derived-cleanup"
-ditto "/Volumes/Derived/.agent-tools/Integrations/derived-cleanup" \
-  "$HOME/.claude/skills/derived-cleanup"
-```
-
-Verify the connection with `claude mcp get derived`.
-
-### Cursor
-
-First, complete the manual binary installation. Then add Derived to `~/.cursor/mcp.json`:
-
-```json
-{
-  "mcpServers": {
-    "derived": {
-      "command": "/Users/YOUR_NAME/.local/bin/derived-mcp",
-      "args": []
-    }
-  }
-}
-```
-
-Replace `YOUR_NAME` with your macOS account name. To install the optional skill, copy `/Volumes/Derived/.agent-tools/Integrations/derived-cleanup` to `~/.cursor/skills/derived-cleanup`. Restart Cursor and confirm that the `derived` MCP server is connected.
-
-See [Agent Integrations](docs/AGENT_INTEGRATIONS.md) for manual Codex configuration, uninstallation, development installation, and protocol details.
+See [Agent Integrations](docs/AGENT_INTEGRATIONS.md) for client-specific commands, manual configuration, and uninstallation.
 
 ## Use the CLI
 
@@ -142,6 +110,9 @@ The CLI provides aligned tables for interactive use and JSON for scripts and age
 | `derived list` | List candidates from one category in a previous scan |
 | `derived prepare` | Create an expiring cleanup plan for selected items or categories |
 | `derived delete` | Execute a prepared plan with its exact confirmation phrase |
+| `derived integrations install` | Configure the MCP server and skill for supported coding agents |
+| `derived integrations status` | Report installed agent integrations |
+| `derived integrations update` | Update Homebrew-managed tools and refresh their integrations |
 
 Start with a scan:
 

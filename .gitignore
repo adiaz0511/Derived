@@ -16,6 +16,7 @@ dist/
 .build/
 .swiftpm/
 Package.resolved
+!Derived.xcodeproj/project.xcworkspace/xcshareddata/swiftpm/Package.resolved
 
 # macOS
 .DS_Store

@@ -11,4 +11,24 @@ struct CLIArgumentsTests {
             return
         }
     }
+
+    @Test
+    func parsesIntegrationInstallForSpecificClient() throws {
+        let command = try CLIArguments.parse(["integrations", "install", "--client", "cursor"])
+
+        guard case .integrations(.install(client: .cursor)) = command else {
+            Issue.record("Expected a Cursor integration installation")
+            return
+        }
+    }
+
+    @Test
+    func parsesIntegrationStatus() throws {
+        let command = try CLIArguments.parse(["integrations", "status"])
+
+        guard case .integrations(.status) = command else {
+            Issue.record("Expected the integration status command")
+            return
+        }
+    }
 }

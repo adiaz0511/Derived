@@ -8,6 +8,19 @@ enum CLICommand {
     case list(scanID: UUID, category: AgentCategory, offset: Int, limit: Int, json: Bool)
     case prepare(scanID: UUID, selection: AgentCleanupSelection, json: Bool)
     case delete(planID: UUID, confirmation: String, json: Bool)
+    case integrations(IntegrationCommand)
+}
+
+enum IntegrationCommand {
+    case install(client: IntegrationClient?)
+    case status
+    case update
+}
+
+enum IntegrationClient: String, CaseIterable {
+    case codex
+    case claude
+    case cursor
 }
 
 enum CLIArgumentError: LocalizedError {
@@ -41,6 +54,8 @@ struct CLIArguments {
             return try parsePrepare(remaining)
         case "delete":
             return try parseDelete(remaining)
+        case "integrations":
+            return try parseIntegrations(remaining)
         default:
             throw CLIArgumentError.unknownCommand(command)
         }
@@ -84,6 +99,32 @@ struct CLIArguments {
             throw CLIArgumentError.missingOption("--confirm <phrase>")
         }
         return .delete(planID: planID, confirmation: confirmation, json: options.has("--json"))
+    }
+
+    private static func parseIntegrations(_ arguments: [String]) throws -> CLICommand {
+        guard let action = arguments.first else {
+            throw CLIArgumentError.missingOption("install, status, or update")
+        }
+        let options = ParsedOptions(Array(arguments.dropFirst()))
+        switch action {
+        case "install":
+            guard let value = options.first("--client") else {
+                return .integrations(.install(client: nil))
+            }
+            if value == "all" {
+                return .integrations(.install(client: nil))
+            }
+            guard let client = IntegrationClient(rawValue: value) else {
+                throw CLIArgumentError.invalidValue(value)
+            }
+            return .integrations(.install(client: client))
+        case "status":
+            return .integrations(.status)
+        case "update":
+            return .integrations(.update)
+        default:
+            throw CLIArgumentError.unknownCommand("integrations \(action)")
+        }
     }
 }
 
