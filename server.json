@@ -7,11 +7,11 @@
     "url": "https://github.com/adiaz0511/Derived",
     "source": "github"
   },
-  "version": "1.0.0",
+  "version": "1.0.1",
   "packages": [
     {
       "registryType": "mcpb",
-      "identifier": "https://github.com/adiaz0511/Derived/releases/download/v1.0.0/Derived-MCP-1.0.0-macOS-universal.mcpb",
+      "identifier": "https://github.com/adiaz0511/Derived/releases/download/v1.0.1/Derived-MCP-1.0.1-macOS-universal.mcpb",
       "fileSha256": "aa31f8d858cac89c138f7ed5d0f48f3404043b0d15f0b2b4b6f11fd0e24c0929",
       "transport": {
         "type": "stdio"

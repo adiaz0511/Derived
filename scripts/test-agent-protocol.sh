@@ -10,15 +10,15 @@ cd "$project_root"
 swift build
 
 "$build_path/derived" --help | /usr/bin/grep -q "Derived command-line interface"
-[[ "$("$build_path/derived" --version)" == "derived 1.0.0" ]]
+[[ "$("$build_path/derived" --version)" == "derived 1.0.1" ]]
 /usr/bin/grep -q "Prefer MCP and CLI access over the Derived macOS UI or Computer Use" "$project_root/Integrations/derived-cleanup/SKILL.md"
 /usr/bin/grep -q 'plugin://computer-use' "$project_root/Integrations/derived-cleanup/SKILL.md"
 /usr/bin/grep -q 'Use \$derived-cleanup' "$project_root/Integrations/derived-cleanup/agents/openai.yaml"
-/usr/bin/grep -q 'current CLI and MCP agent-tools version is `1.0.0`' "$project_root/README.md"
+/usr/bin/grep -q 'current CLI and MCP agent-tools version is `1.0.1`' "$project_root/README.md"
 /usr/bin/grep -q 'derived scan --json' "$project_root/README.md"
 /usr/bin/grep -q 'scripts/install-codex-agent-tools.sh' "$project_root/README.md"
 /usr/bin/grep -q 'DerivedCLITests' "$project_root/README.md"
-/usr/bin/grep -q 'current agent-tools version is `1.0.0`' "$project_root/docs/AGENT_INTEGRATIONS.md"
+/usr/bin/grep -q 'current agent-tools version is `1.0.1`' "$project_root/docs/AGENT_INTEGRATIONS.md"
 /usr/bin/grep -q 'scan output includes a totals row' "$project_root/docs/AGENT_INTEGRATIONS.md"
 /usr/bin/grep -q 'derived --version' "$project_root/Integrations/derived-cleanup/references/tools.md"
 
@@ -39,7 +39,7 @@ with open(sys.argv[1], encoding="utf-8") as handle:
 assert len(messages) == 3
 assert messages[0]["result"]["protocolVersion"] == "2025-06-18"
 assert messages[0]["result"]["serverInfo"]["name"] == "derived"
-assert messages[0]["result"]["serverInfo"]["version"] == "1.0.0"
+assert messages[0]["result"]["serverInfo"]["version"] == "1.0.1"
 
 tools = {tool["name"]: tool for tool in messages[1]["result"]["tools"]}
 assert set(tools) == {"scan", "list_candidates", "prepare_cleanup", "execute_cleanup"}
