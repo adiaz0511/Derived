@@ -5,7 +5,9 @@ final class InstallerAppDelegate: NSObject, NSApplicationDelegate {
     private var window: NSWindow?
     private var installButton: NSButton?
     private var uninstallButton: NSButton?
+    private var closeButton: NSButton?
     private var progressIndicator: NSProgressIndicator?
+    private var statusIconView: NSImageView?
     private var statusLabel: NSTextField?
     private var outputTextView: NSTextView?
 
@@ -46,6 +48,10 @@ final class InstallerAppDelegate: NSObject, NSApplicationDelegate {
             progressMessage: "Removing the CLI, MCP server, and Codex skill…",
             successMessage: "Derived Agent Tools were removed."
         )
+    }
+
+    @objc private func closeInstaller() {
+        window?.performClose(nil)
     }
 
     private func runAgentToolsScript(
@@ -103,9 +109,17 @@ final class InstallerAppDelegate: NSObject, NSApplicationDelegate {
     }
 
     private func setOperationRunning(_ running: Bool, message: String) {
+        installButton?.isHidden = false
+        uninstallButton?.isHidden = false
         installButton?.isEnabled = !running
         uninstallButton?.isEnabled = !running && agentToolsAreInstalled
+        installButton?.keyEquivalent = running ? "" : "\r"
+        closeButton?.isHidden = true
+        closeButton?.keyEquivalent = ""
         statusLabel?.stringValue = message
+        statusLabel?.font = .systemFont(ofSize: 13, weight: .medium)
+        statusLabel?.textColor = .labelColor
+        statusIconView?.isHidden = true
         outputTextView?.string = ""
 
         if running {
@@ -118,6 +132,22 @@ final class InstallerAppDelegate: NSObject, NSApplicationDelegate {
     private func finishOperation(message: String, output: String, succeeded: Bool) {
         setOperationRunning(false, message: message)
         outputTextView?.string = output.trimmingCharacters(in: .whitespacesAndNewlines)
+
+        let symbolName = succeeded ? "checkmark.circle.fill" : "exclamationmark.triangle.fill"
+        let statusColor: NSColor = succeeded ? .systemGreen : .systemRed
+        statusIconView?.image = NSImage(
+            systemSymbolName: symbolName,
+            accessibilityDescription: succeeded ? "Operation completed successfully" : "Operation failed"
+        )
+        statusIconView?.contentTintColor = statusColor
+        statusIconView?.isHidden = false
+        statusLabel?.font = .systemFont(ofSize: 15, weight: .bold)
+        statusLabel?.textColor = statusColor
+        installButton?.isHidden = succeeded
+        uninstallButton?.isHidden = succeeded
+        closeButton?.isHidden = false
+        closeButton?.keyEquivalent = "\r"
+        installButton?.keyEquivalent = ""
 
         if !succeeded {
             NSSound.beep()
@@ -168,6 +198,12 @@ final class InstallerAppDelegate: NSObject, NSApplicationDelegate {
         statusLabel.translatesAutoresizingMaskIntoConstraints = false
         self.statusLabel = statusLabel
 
+        let statusIconView = NSImageView()
+        statusIconView.imageScaling = .scaleProportionallyUpOrDown
+        statusIconView.isHidden = true
+        statusIconView.translatesAutoresizingMaskIntoConstraints = false
+        self.statusIconView = statusIconView
+
         let progressIndicator = NSProgressIndicator()
         progressIndicator.style = .spinning
         progressIndicator.controlSize = .small
@@ -209,14 +245,21 @@ final class InstallerAppDelegate: NSObject, NSApplicationDelegate {
         self.uninstallButton = uninstallButton
         uninstallButton.isEnabled = agentToolsAreInstalled
 
-        let buttonStack = NSStackView(views: [uninstallButton, installButton])
+        let closeButton = NSButton(title: "Close", target: self, action: #selector(closeInstaller))
+        closeButton.bezelStyle = .rounded
+        closeButton.controlSize = .large
+        closeButton.isHidden = true
+        closeButton.translatesAutoresizingMaskIntoConstraints = false
+        self.closeButton = closeButton
+
+        let buttonStack = NSStackView(views: [uninstallButton, installButton, closeButton])
         buttonStack.orientation = .horizontal
         buttonStack.alignment = .centerY
         buttonStack.distribution = .fill
         buttonStack.spacing = 12
         buttonStack.translatesAutoresizingMaskIntoConstraints = false
 
-        let statusStack = NSStackView(views: [progressIndicator, statusLabel])
+        let statusStack = NSStackView(views: [progressIndicator, statusIconView, statusLabel])
         statusStack.orientation = .horizontal
         statusStack.alignment = .centerY
         statusStack.spacing = 8
@@ -251,7 +294,10 @@ final class InstallerAppDelegate: NSObject, NSApplicationDelegate {
             buttonStack.bottomAnchor.constraint(equalTo: contentView.bottomAnchor, constant: -24),
 
             installButton.widthAnchor.constraint(greaterThanOrEqualToConstant: 150),
-            uninstallButton.widthAnchor.constraint(greaterThanOrEqualToConstant: 96)
+            uninstallButton.widthAnchor.constraint(greaterThanOrEqualToConstant: 96),
+            closeButton.widthAnchor.constraint(greaterThanOrEqualToConstant: 96),
+            statusIconView.widthAnchor.constraint(equalToConstant: 22),
+            statusIconView.heightAnchor.constraint(equalToConstant: 22)
         ])
 
         return window

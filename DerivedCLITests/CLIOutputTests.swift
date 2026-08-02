@@ -41,6 +41,29 @@ struct CLIOutputTests {
     }
 
     @Test func versionDescriptionUsesCurrentAgentVersion() {
-        #expect(DerivedAgentVersion.cliDescription == "derived 1.0.1")
+        #expect(DerivedAgentVersion.cliDescription == "derived 1.0.2")
+    }
+
+    @Test func cleanupPlanExplainsConfirmationAndPrintsDeleteCommand() {
+        let planID = UUID(uuidString: "00000000-0000-0000-0000-000000000002")!
+        let plan = AgentCleanupPlan(
+            schemaVersion: 1,
+            planID: planID,
+            scanID: UUID(uuidString: "00000000-0000-0000-0000-000000000001")!,
+            createdAt: Date(timeIntervalSince1970: 0),
+            expiresAt: Date(timeIntervalSince1970: 600),
+            itemCount: 2,
+            verifiedReclaimableBytes: 120_803_328,
+            logicalBytes: 0,
+            categories: [.previewData],
+            requiresAdditionalConfirmation: false,
+            confirmationPhrase: "DELETE 2 ITEMS"
+        )
+
+        let output = CLIOutput.plan(plan)
+
+        #expect(output.contains("Confirmation phrase: DELETE 2 ITEMS"))
+        #expect(output.contains("To permanently delete these items within 10 minutes, run:"))
+        #expect(output.contains("derived delete --plan \(planID.uuidString) --confirm 'DELETE 2 ITEMS'"))
     }
 }

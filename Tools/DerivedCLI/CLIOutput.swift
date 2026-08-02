@@ -116,8 +116,10 @@ enum CLIOutput {
 
         \(table)
 
-        To execute, pass this exact phrase to `--confirm`:
-        \(plan.confirmationPhrase)
+        Confirmation phrase: \(plan.confirmationPhrase)
+
+        Review the plan above. To permanently delete these items within 10 minutes, run:
+        derived delete --plan \(plan.planID.uuidString) --confirm \(shellQuote(plan.confirmationPhrase))
         """
     }
 
@@ -148,5 +150,9 @@ enum CLIOutput {
 
     private static func format(_ bytes: Int64) -> String {
         bytes.formatted(.byteCount(style: .file, allowedUnits: [.kb, .mb, .gb, .tb], spellsOutZero: true))
+    }
+
+    private static func shellQuote(_ value: String) -> String {
+        "'\(value.replacing("'", with: "'\\''"))'"
     }
 }

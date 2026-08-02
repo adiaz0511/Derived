@@ -55,5 +55,6 @@ struct DerivedCLI {
       derived delete --plan <UUID> --confirm <exact-phrase> [--json]
 
     Cleanup is permanent. A fresh scan and cleanup plan are required before deletion.
+    Interactive `prepare` output prints the exact confirmation phrase and delete command.
     """
 }

@@ -33,14 +33,14 @@ jobs:
 
       - name: Build and package release agent tools
         run: |
-          scripts/package-agent-tools.sh 1.0.1
-          test -f "dist/DerivedAgentTools-1.0.1-macOS-$(uname -m).tar.gz"
+          scripts/package-agent-tools.sh 1.0.2
+          test -f "dist/DerivedAgentTools-1.0.2-macOS-$(uname -m).tar.gz"
 
       - name: Build MCP bundle
         run: |
-          scripts/package-mcpb.sh 1.0.1
-          test -f "dist/Derived-MCP-1.0.1-macOS-$(uname -m).mcpb"
-          scripts/verify-portable-checksums.sh "dist/Derived-MCP-1.0.1-macOS-$(uname -m).mcpb.sha256"
+          scripts/package-mcpb.sh 1.0.2
+          test -f "dist/Derived-MCP-1.0.2-macOS-$(uname -m).mcpb"
+          scripts/verify-portable-checksums.sh "dist/Derived-MCP-1.0.2-macOS-$(uname -m).mcpb.sha256"
 
       - name: Verify the existing application
         run: scripts/verify-app-regression.sh

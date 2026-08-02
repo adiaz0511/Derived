@@ -7,7 +7,7 @@ Derived provides two native command-line products from the repository's Swift pa
 
 Both products use the same scanner, validation, and cleanup coordinator as the macOS application. The MCP server does not accept arbitrary paths.
 
-The current agent-tools version is `1.0.1`. The CLI reports it through `derived --version`, and the MCP server reports the same value in its initialization handshake.
+The current agent-tools version is `1.0.2`. The CLI reports it through `derived --version`, and the MCP server reports the same value in its initialization handshake.
 
 ## Install from the disk image
 
@@ -34,8 +34,9 @@ To install:
 1. Open `Derived.dmg`.
 2. Open **Derived Agent Tools**.
 3. Select **Install for Codex**.
-4. Restart Codex.
-5. Run the verification commands:
+4. Wait for the green completion indicator, then select **Close**.
+5. Restart Codex.
+6. Run the verification commands:
 
 ```sh
 "$HOME/.local/bin/derived" --version
@@ -98,7 +99,7 @@ scripts/package-agent-tools.sh
 The packaging script derives the archive version from `derived --version`. An optional version argument validates an expected version and fails if it does not match the binary:
 
 ```sh
-scripts/package-agent-tools.sh 1.0.1
+scripts/package-agent-tools.sh 1.0.2
 ```
 
 ## Command-line workflow
@@ -109,7 +110,10 @@ Use the default output for interactive terminal work. Scan and candidate command
 derived --version
 derived scan
 derived list --scan <scan-id> --category derivedData --limit 20
+derived prepare --scan <scan-id> --category previewData
 ```
+
+Interactive `prepare` output explains the confirmation phrase and prints the complete `derived delete` command for that plan. Review the plan before running the printed command.
 
 Use `--json` for scripts and agents:
 
