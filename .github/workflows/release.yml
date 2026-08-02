@@ -30,6 +30,12 @@ jobs:
         with:
           fetch-depth: 0
 
+      - name: Install deterministic DMG builder
+        run: |
+          python3 -m venv "$RUNNER_TEMP/derived-release-venv"
+          "$RUNNER_TEMP/derived-release-venv/bin/pip" install -r requirements-release.txt
+          echo "DMGBUILD_BIN=$RUNNER_TEMP/derived-release-venv/bin/dmgbuild" >> "$GITHUB_ENV"
+
       - name: Resolve release settings
         id: release
         env:

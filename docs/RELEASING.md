@@ -14,11 +14,21 @@ scripts/test-publication-metadata.sh
 scripts/verify-app-regression.sh
 ```
 
+Create the isolated release-packaging environment:
+
+```sh
+python3 -m venv .build/release-venv
+.build/release-venv/bin/pip install -r requirements-release.txt
+export DMGBUILD_BIN="$PWD/.build/release-venv/bin/dmgbuild"
+```
+
+The pinned `dmgbuild` dependency writes Finder metadata directly. This avoids the unreliable asynchronous `.DS_Store` updates produced by Finder on macOS Tahoe.
+
 Create an unsigned universal DMG for layout and installation testing:
 
 ```sh
 scripts/build-release-dmg.sh \
-  --version 0.2.0 \
+  --version 1.0.0 \
   --architectures universal \
   --unsigned
 ```
@@ -40,7 +50,7 @@ xcrun notarytool store-credentials derived-notary \
 
 ```sh
 scripts/build-release-dmg.sh \
-  --version 0.2.0 \
+  --version 1.0.0 \
   --architectures universal \
   --sign-identity "Developer ID Application: YOUR NAME (TEAM_ID)" \
   --notary-profile derived-notary \
@@ -62,8 +72,8 @@ Configure these GitHub Actions secrets:
 Run the Release workflow manually with its default unsigned setting before the first public release. Then create and push the release tag:
 
 ```sh
-git tag v0.2.0
-git push origin v0.2.0
+git tag v1.0.0
+git push origin v1.0.0
 ```
 
 The tag workflow publishes the notarized DMG, MCPB, checksums, and generated MCP Registry metadata to a GitHub Release. It fails before publication when signing or notarization is unavailable.
@@ -85,7 +95,7 @@ Do not publish the repository `server.json` after signing. Final signing changes
 1. Download the DMG from the public GitHub Release.
 2. Confirm Gatekeeper opens it without an override.
 3. Drag Derived into Applications and launch it.
-4. Run **Install Derived Agent Tools** from the DMG.
+4. Open **Derived Agent Tools** from the DMG and select **Install for Codex**.
 5. Restart Codex.
 6. Run `"$HOME/.local/bin/derived" --version` and `codex mcp get derived`.
 7. Ask Codex to use `$derived-cleanup` for a read-only scan.

@@ -22,20 +22,16 @@ readonly fake_codex_log="$test_root/codex-log"
 mkdir -p "$payload_root/bin" "$payload_root/Integrations" \
   "$test_codex_root/skills/unrelated-skill" "$test_home/Library/Application Support/Derived"
 
-/bin/cp "$project_root/scripts/Install Derived Agent Tools.command" "$dmg_root/Install Derived Agent Tools.command"
-/bin/cp "$project_root/scripts/Uninstall Derived Agent Tools.command" "$dmg_root/Uninstall Derived Agent Tools.command"
 /bin/cp "$project_root/scripts/install-codex-agent-tools.sh" "$payload_root/install-codex-agent-tools.sh"
 /bin/cp "$project_root/scripts/uninstall-codex-agent-tools.sh" "$payload_root/uninstall-codex-agent-tools.sh"
-/bin/chmod 755 "$dmg_root/Install Derived Agent Tools.command" \
-  "$dmg_root/Uninstall Derived Agent Tools.command" \
-  "$payload_root/install-codex-agent-tools.sh" \
+/bin/chmod 755 "$payload_root/install-codex-agent-tools.sh" \
   "$payload_root/uninstall-codex-agent-tools.sh"
 
 /bin/cp -R "$project_root/Integrations/derived-cleanup" \
   "$payload_root/Integrations/derived-cleanup"
 
 print -r -- '#!/bin/zsh' > "$payload_root/bin/derived"
-print -r -- '[[ "${1:-}" == "--version" ]] && print "derived 0.2.0"' >> "$payload_root/bin/derived"
+print -r -- '[[ "${1:-}" == "--version" ]] && print "derived 1.0.0"' >> "$payload_root/bin/derived"
 print -r -- '#!/bin/zsh' > "$payload_root/bin/derived-mcp"
 print -r -- 'exit 0' >> "$payload_root/bin/derived-mcp"
 chmod 755 "$payload_root/bin/derived" "$payload_root/bin/derived-mcp"
@@ -64,9 +60,9 @@ DERIVED_INSTALL_BIN_DIR="$test_bin" \
 DERIVED_CODEX_CLI="$fake_codex" \
 FAKE_CODEX_STATE="$fake_codex_state" \
 FAKE_CODEX_LOG="$fake_codex_log" \
-  /bin/zsh "$dmg_root/Install Derived Agent Tools.command" >/dev/null
+  /bin/zsh "$payload_root/install-codex-agent-tools.sh" >/dev/null
 
-[[ "$($test_bin/derived --version)" == "derived 0.2.0" ]]
+[[ "$($test_bin/derived --version)" == "derived 1.0.0" ]]
 [[ -x "$test_bin/derived-mcp" ]]
 [[ -f "$test_codex_root/skills/derived-cleanup/SKILL.md" ]]
 [[ -f "$test_codex_root/skills/unrelated-skill/SKILL.md" ]]
@@ -79,7 +75,7 @@ DERIVED_INSTALL_BIN_DIR="$test_bin" \
 DERIVED_CODEX_CLI="$fake_codex" \
 FAKE_CODEX_STATE="$fake_codex_state" \
 FAKE_CODEX_LOG="$fake_codex_log" \
-  /bin/zsh "$dmg_root/Uninstall Derived Agent Tools.command" >/dev/null
+  /bin/zsh "$payload_root/uninstall-codex-agent-tools.sh" >/dev/null
 
 [[ ! -e "$test_bin/derived" ]]
 [[ ! -e "$test_bin/derived-mcp" ]]
@@ -101,7 +97,7 @@ if HOME="$test_home" \
   FAKE_CODEX_STATE="$fake_codex_state" \
   FAKE_CODEX_LOG="$fake_codex_log" \
   FAKE_CODEX_FAIL_ADD=yes \
-    /bin/zsh "$dmg_root/Install Derived Agent Tools.command" >/dev/null 2>&1; then
+    /bin/zsh "$payload_root/install-codex-agent-tools.sh" >/dev/null 2>&1; then
   print -u2 "Installer unexpectedly succeeded when MCP registration failed."
   exit 1
 fi
@@ -110,5 +106,13 @@ fi
 [[ "$(<"$test_bin/derived-mcp")" == "previous-mcp" ]]
 [[ "$(<"$test_codex_root/skills/derived-cleanup/SKILL.md")" == "previous-skill" ]]
 [[ "$(<"$test_codex_root/config.toml")" == "previous-config" ]]
+
+/usr/bin/plutil -lint "$project_root/Tools/DerivedAgentToolsInstaller/Info.plist" >/dev/null
+swiftc \
+  -typecheck \
+  -target "$(uname -m)-apple-macosx14.0" \
+  -sdk "$(xcrun --sdk macosx --show-sdk-path)" \
+  "$project_root/Tools/DerivedAgentToolsInstaller/AppMain.swift" \
+  "$project_root/Tools/DerivedAgentToolsInstaller/InstallerAppDelegate.swift"
 
 print "Agent-tools installation and uninstallation tests passed."

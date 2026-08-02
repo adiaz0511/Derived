@@ -7,7 +7,7 @@ Derived provides two native command-line products from the repository's Swift pa
 
 Both products use the same scanner, validation, and cleanup coordinator as the macOS application. The MCP server does not accept arbitrary paths.
 
-The current agent-tools version is `0.2.0`. The CLI reports it through `derived --version`, and the MCP server reports the same value in its initialization handshake.
+The current agent-tools version is `1.0.0`. The CLI reports it through `derived --version`, and the MCP server reports the same value in its initialization handshake.
 
 ## Install from the disk image
 
@@ -32,9 +32,10 @@ The recommended installer performs four user-scoped actions:
 To install:
 
 1. Open `Derived.dmg`.
-2. Double-click **Install Derived Agent Tools**.
-3. Restart Codex.
-4. Run the verification commands:
+2. Open **Derived Agent Tools**.
+3. Select **Install for Codex**.
+4. Restart Codex.
+5. Run the verification commands:
 
 ```sh
 "$HOME/.local/bin/derived" --version
@@ -47,7 +48,7 @@ Then test the workflow with this request:
 Use $derived-cleanup to scan my developer storage.
 ```
 
-The installer does not require administrator access. It replaces only the existing Derived MCP registration and `derived-cleanup` skill.
+The installer application is signed and notarized as part of the release disk image. It does not require administrator access. It replaces only the existing Derived MCP registration and `derived-cleanup` skill.
 
 ### Codex: manual installation
 
@@ -55,10 +56,10 @@ Keep `Derived.dmg` mounted. Then run:
 
 ```sh
 mkdir -p "$HOME/.local/bin" "$HOME/.codex/skills"
-install -m 755 "/Volumes/Derived/Agent Tools/bin/derived" "$HOME/.local/bin/derived"
-install -m 755 "/Volumes/Derived/Agent Tools/bin/derived-mcp" "$HOME/.local/bin/derived-mcp"
+install -m 755 "/Volumes/Derived/.agent-tools/bin/derived" "$HOME/.local/bin/derived"
+install -m 755 "/Volumes/Derived/.agent-tools/bin/derived-mcp" "$HOME/.local/bin/derived-mcp"
 rm -rf "$HOME/.codex/skills/derived-cleanup"
-ditto "/Volumes/Derived/Agent Tools/Integrations/derived-cleanup" \
+ditto "/Volumes/Derived/.agent-tools/Integrations/derived-cleanup" \
   "$HOME/.codex/skills/derived-cleanup"
 codex mcp remove derived 2>/dev/null || true
 codex mcp add derived -- "$HOME/.local/bin/derived-mcp"
@@ -68,7 +69,7 @@ Restart Codex and run the same verification commands shown above.
 
 ## Uninstall from Codex
 
-The easiest method is to open `Derived.dmg` and double-click **Uninstall Derived Agent Tools**.
+The easiest method is to open `Derived.dmg`, open **Derived Agent Tools**, and select **Remove**.
 
 For manual removal, run:
 
@@ -97,7 +98,7 @@ scripts/package-agent-tools.sh
 The packaging script derives the archive version from `derived --version`. An optional version argument validates an expected version and fails if it does not match the binary:
 
 ```sh
-scripts/package-agent-tools.sh 0.2.0
+scripts/package-agent-tools.sh 1.0.0
 ```
 
 ## Command-line workflow
@@ -160,8 +161,8 @@ First, install the precompiled executables from the mounted disk image:
 
 ```sh
 mkdir -p "$HOME/.local/bin"
-install -m 755 "/Volumes/Derived/Agent Tools/bin/derived" "$HOME/.local/bin/derived"
-install -m 755 "/Volumes/Derived/Agent Tools/bin/derived-mcp" "$HOME/.local/bin/derived-mcp"
+install -m 755 "/Volumes/Derived/.agent-tools/bin/derived" "$HOME/.local/bin/derived"
+install -m 755 "/Volumes/Derived/.agent-tools/bin/derived-mcp" "$HOME/.local/bin/derived-mcp"
 ```
 
 Add the server for the current user:
@@ -175,7 +176,7 @@ Copy the optional workflow skill from the mounted image:
 ```sh
 mkdir -p "$HOME/.claude/skills"
 rm -rf "$HOME/.claude/skills/derived-cleanup"
-ditto "/Volumes/Derived/Agent Tools/Integrations/derived-cleanup" \
+ditto "/Volumes/Derived/.agent-tools/Integrations/derived-cleanup" \
   "$HOME/.claude/skills/derived-cleanup"
 ```
 
@@ -198,7 +199,7 @@ Add the server to `~/.cursor/mcp.json`:
 }
 ```
 
-Copy `/Volumes/Derived/Agent Tools/Integrations/derived-cleanup` to `~/.cursor/skills/derived-cleanup` to install the optional workflow skill. Restart Cursor, open its MCP settings, and confirm that `derived` is connected.
+Copy `/Volumes/Derived/.agent-tools/Integrations/derived-cleanup` to `~/.cursor/skills/derived-cleanup` to install the optional workflow skill. Restart Cursor, open its MCP settings, and confirm that `derived` is connected.
 
 ## Interaction model
 

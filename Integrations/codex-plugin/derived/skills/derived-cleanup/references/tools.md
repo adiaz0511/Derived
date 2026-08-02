@@ -10,7 +10,7 @@ Always request structured CLI output with `--json`. Do not parse the human-reada
 
 ## Version and output modes
 
-- Run `derived --version` to identify the installed CLI. Version `0.2.0` also appears in the MCP initialization handshake.
+- Run `derived --version` to identify the installed CLI. Version `1.0.0` also appears in the MCP initialization handshake.
 - Use `derived scan` and `derived list` only when a user explicitly wants human-readable terminal output. These commands render aligned ASCII tables; scan output includes totals.
 - Use `--json` for agent decisions, scripts, candidate identifiers, and cleanup plans.
 

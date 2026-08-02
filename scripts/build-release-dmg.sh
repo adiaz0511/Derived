@@ -76,8 +76,19 @@ if $dry_run; then
   exit 0
 fi
 
+readonly dmgbuild_bin="${DMGBUILD_BIN:-$(command -v dmgbuild || true)}"
+if [[ -z "$dmgbuild_bin" || ! -x "$dmgbuild_bin" ]]; then
+  print -u2 "dmgbuild 1.6.7 or newer is required to create deterministic Finder metadata."
+  print -u2 "Install it with: python3 -m pip install 'dmgbuild>=1.6.7,<2'"
+  exit 1
+fi
+
 readonly work_root="$(mktemp -d "${TMPDIR:-/tmp}/derived-release.XXXXXX")"
+mounted_device=""
 function cleanup_work_root {
+  if [[ -n "$mounted_device" ]]; then
+    hdiutil detach "$mounted_device" -quiet >/dev/null 2>&1 || true
+  fi
   if $keep_work; then
     print "Retained build directory: $work_root"
   else
@@ -144,22 +155,50 @@ if [[ -n "$sign_identity" ]]; then
   codesign --verify --deep --strict --verbose=2 "$app_path"
 fi
 
+readonly installer_path="$work_root/Derived Agent Tools.app"
+typeset -a installer_arguments=(
+  --version "$version"
+  --output "$installer_path"
+  --cli "$work_root/bin/derived"
+  --mcp "$work_root/bin/derived-mcp"
+  --icon "$app_path/Contents/Resources/AppIcon.icns"
+  --architectures "${architectures[@]}"
+)
+if [[ -n "$sign_identity" ]]; then
+  installer_arguments+=(--sign-identity "$sign_identity")
+fi
+scripts/build-agent-tools-installer.sh "${installer_arguments[@]}"
+
 readonly volume_root="$work_root/volume"
-mkdir -p "$volume_root/Agent Tools/bin" "$volume_root/Agent Tools/Integrations"
+mkdir -p "$volume_root/.agent-tools/bin" "$volume_root/.agent-tools/Integrations"
 ditto "$app_path" "$volume_root/Derived.app"
+ditto "$installer_path" "$volume_root/Derived Agent Tools.app"
 ln -s /Applications "$volume_root/Applications"
-cp "$work_root/bin/derived" "$work_root/bin/derived-mcp" "$volume_root/Agent Tools/bin/"
-ditto Integrations/derived-cleanup "$volume_root/Agent Tools/Integrations/derived-cleanup"
-cp docs/AGENT_INTEGRATIONS.md "$volume_root/Agent Tools/AGENT_INTEGRATIONS.md"
-cp LICENSE "$volume_root/Agent Tools/LICENSE"
-cp "scripts/Install Derived Agent Tools.command" "scripts/Uninstall Derived Agent Tools.command" release/*.html "$volume_root/"
-cp scripts/install-codex-agent-tools.sh scripts/uninstall-codex-agent-tools.sh "$volume_root/Agent Tools/"
-chmod 755 "$volume_root"/*.command
+cp "$work_root/bin/derived" "$work_root/bin/derived-mcp" "$volume_root/.agent-tools/bin/"
+ditto Integrations/derived-cleanup "$volume_root/.agent-tools/Integrations/derived-cleanup"
+cp docs/AGENT_INTEGRATIONS.md "$volume_root/.agent-tools/AGENT_INTEGRATIONS.md"
+cp LICENSE "$volume_root/.agent-tools/LICENSE"
+cp scripts/install-codex-agent-tools.sh scripts/uninstall-codex-agent-tools.sh "$volume_root/.agent-tools/"
+chmod 755 "$volume_root/.agent-tools"/*.sh
+readonly background_path="$work_root/Derived-DMG-Background.png"
+readonly background_2x_path="$work_root/Derived-DMG-Background@2x.png"
+xcrun swift scripts/generate-dmg-background.swift \
+  "$background_path" \
+  1
+xcrun swift scripts/generate-dmg-background.swift \
+  "$background_2x_path" \
+  2
 
 readonly artifact_name="Derived-${version}-macOS-${architecture_mode}.dmg"
 readonly dmg_path="$output_dir/$artifact_name"
 rm -f "$dmg_path" "$dmg_path.sha256"
-hdiutil create -quiet -fs HFS+ -volname "Derived" -srcfolder "$volume_root" -format UDZO "$dmg_path"
+"$dmgbuild_bin" \
+  -s scripts/dmgbuild-settings.py \
+  -D "source_root=$volume_root" \
+  -D "background=$background_path" \
+  -D "volume_icon=$app_path/Contents/Resources/AppIcon.icns" \
+  "Derived" \
+  "$dmg_path"
 hdiutil verify "$dmg_path"
 
 if [[ -n "$sign_identity" ]]; then
