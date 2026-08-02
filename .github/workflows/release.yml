@@ -129,6 +129,14 @@ jobs:
       - name: Verify portable release checksums
         run: scripts/verify-portable-checksums.sh dist/*.sha256
 
+      - name: Preserve MCP Registry metadata
+        if: github.event_name == 'push'
+        uses: actions/upload-artifact@v4
+        with:
+          name: Derived-${{ steps.release.outputs.version }}-mcp-registry-metadata
+          path: dist/server.json
+          if-no-files-found: error
+
       - name: Upload manual validation artifact
         if: github.event_name == 'workflow_dispatch'
         uses: actions/upload-artifact@v4
@@ -150,5 +158,3 @@ jobs:
           files: |
             dist/*.dmg
             dist/*.mcpb
-            dist/*.sha256
-            dist/server.json

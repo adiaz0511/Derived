@@ -28,7 +28,7 @@ Create an unsigned universal DMG for layout and installation testing:
 
 ```sh
 scripts/build-release-dmg.sh \
-  --version 1.0.0 \
+  --version 1.0.1 \
   --architectures universal \
   --unsigned
 ```
@@ -50,7 +50,7 @@ xcrun notarytool store-credentials derived-notary \
 
 ```sh
 scripts/build-release-dmg.sh \
-  --version 1.0.0 \
+  --version 1.0.1 \
   --architectures universal \
   --sign-identity "Developer ID Application: YOUR NAME (TEAM_ID)" \
   --notary-profile derived-notary \
@@ -72,15 +72,17 @@ Configure these GitHub Actions secrets:
 Run the Release workflow manually with its default unsigned setting before the first public release. Then create and push the release tag:
 
 ```sh
-git tag v1.0.0
-git push origin v1.0.0
+git tag v1.0.1
+git push origin v1.0.1
 ```
 
-The tag workflow publishes the notarized DMG, MCPB, checksums, and generated MCP Registry metadata to a GitHub Release. It fails before publication when signing or notarization is unavailable.
+The tag workflow publishes only the notarized DMG and MCPB as public GitHub Release assets. GitHub adds the source code ZIP and TAR.GZ archives automatically. The workflow continues generating and validating checksum files internally, but it does not publish those files as public Release assets.
+
+The generated `dist/server.json` is stored as a GitHub Actions workflow artifact named `Derived-VERSION-mcp-registry-metadata` on tagged releases. Download that workflow artifact from the tagged Release run before publishing to the MCP Registry. The manual validation workflow artifact continues to include the DMG, MCPB, checksums, and `server.json`.
 
 ## Publish MCP metadata
 
-After the GitHub Release and MCPB URL are publicly accessible, authenticate with the official MCP Registry publisher. Then validate and publish the generated metadata:
+After the GitHub Release and MCPB URL are publicly accessible, download the `Derived-VERSION-mcp-registry-metadata` workflow artifact from the tagged Release run. Then authenticate with the official MCP Registry publisher and validate the downloaded metadata:
 
 ```sh
 cd dist
