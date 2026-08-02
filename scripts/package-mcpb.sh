@@ -3,7 +3,7 @@
 set -euo pipefail
 
 readonly project_root="${0:A:h:h}"
-readonly expected_version="${1:-1.0.1}"
+readonly expected_version="${1:-1.0.2}"
 readonly architecture="${DERIVED_MCP_ARCHITECTURE:-$(uname -m)}"
 readonly staging_root="$(mktemp -d "${TMPDIR:-/tmp}/derived-mcpb.XXXXXX")"
 

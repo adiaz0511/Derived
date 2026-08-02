@@ -104,6 +104,10 @@ for architecture in "${architectures[@]}"; do
   }
 done
 
+# Local source files can carry provenance or quarantine attributes that cannot
+# be copied to the release image. Distribution artifacts must not retain them.
+/usr/bin/xattr -cr "$output_path"
+
 if [[ -n "$sign_identity" ]]; then
   /usr/bin/codesign \
     --force \
