@@ -10,95 +10,211 @@
   </p>
 </div>
 
-> [!WARNING]
-> Derived is under active development. Cleanup is permanent and does not move files to the Trash. Review the selected category and confirmation message before deleting data.
+> [!CAUTION]
+> Derived permanently deletes selected developer data instead of moving it to the Trash. Review the cleanup plan before confirming deletion.
 
-## Install
+## Overview
 
-Derived is distributed as a notarized disk image so users do not need Xcode.
+Derived finds and removes storage created by Xcode, Simulator, and XCTest. It reports verified reclaimable space, keeps APFS clone sizes separate, and protects active or high-risk targets.
 
-1. Download `Derived.dmg` from the [latest GitHub release](https://github.com/adiaz0511/Derived/releases/latest).
+Use Derived through the macOS app, the `derived` CLI, or the local `derived-mcp` server. All three interfaces use the same scanner, path validation, and cleanup workflow. Derived runs locally and does not collect analytics.
+
+| Interface | Intended use |
+|---|---|
+| macOS app | Interactive scans, cleanup selection, scheduling, and history |
+| CLI | Terminal workflows, shell scripts, and structured JSON output |
+| MCP server | Structured access for Codex, Claude Code, Cursor, and other MCP clients |
+
+## Install the macOS app
+
+Derived is distributed as a signed and notarized universal DMG.
+
+1. Download the DMG from the [latest GitHub release](https://github.com/adiaz0511/Derived/releases/latest).
 2. Open the disk image.
-3. Drag `Derived.app` to the Applications folder.
+3. Drag `Derived.app` to Applications.
 4. Open Derived from Applications.
 
-### Add Derived to Codex
+## Install the CLI and MCP server
 
-The disk image includes the precompiled CLI, MCP server, and `derived-cleanup` skill.
+The DMG includes universal builds of `derived` and `derived-mcp`. Installing the macOS app is not required to use these tools.
 
-1. Open `Derived.dmg`.
-2. Open **Derived Agent Tools**.
-3. Select **Install for Codex**.
-4. Wait for the green completion indicator, then select **Close**.
+### Codex installer
+
+**Derived Agent Tools** installs the CLI, MCP server, and `derived-cleanup` skill for the current user. It also registers the MCP server with Codex.
+
+1. Install Codex and confirm that the `codex` command is available.
+2. Open the latest Derived DMG.
+3. Open **Derived Agent Tools**.
+4. Select **Install for Codex**.
 5. Restart Codex.
-6. Verify the installation:
+
+The installer writes only to user-owned locations and does not require administrator access.
+
+| Component | Installed location |
+|---|---|
+| CLI | `~/.local/bin/derived` |
+| MCP server | `~/.local/bin/derived-mcp` |
+| Codex skill | `~/.codex/skills/derived-cleanup` |
+| MCP registration | Codex configuration under `~/.codex` |
+
+After installation, eject the DMG. The CLI, MCP server, and skill do not require the DMG or `Derived.app`. To update them, download the latest DMG and run **Derived Agent Tools** again. To remove them, open **Derived Agent Tools** and select **Remove**.
+
+### Manual binary installation
+
+Keep the DMG mounted and copy the precompiled binaries:
 
 ```sh
-"$HOME/.local/bin/derived" --version
+mkdir -p "$HOME/.local/bin"
+install -m 755 "/Volumes/Derived/.agent-tools/bin/derived" "$HOME/.local/bin/derived"
+install -m 755 "/Volumes/Derived/.agent-tools/bin/derived-mcp" "$HOME/.local/bin/derived-mcp"
+```
+
+Add `~/.local/bin` to `PATH` if your shell does not already include it.
+
+### MCPB installation
+
+Clients that support MCPB bundles can install `Derived-MCP-VERSION-macOS-universal.mcpb` from the latest release. The MCPB contains the MCP server, but it does not install the `derived` CLI or portable skill.
+
+## Use Derived with coding agents
+
+### Codex
+
+After using **Derived Agent Tools**, verify the installation:
+
+```sh
+derived --version
 codex mcp get derived
 ```
 
-Then ask Codex:
+Then start a new Codex session and ask:
 
 ```text
 Use $derived-cleanup to scan my developer storage.
 ```
 
-The notarized installer uses only locations owned by the current user. It does not request administrator access. Open the same application and select **Remove** to uninstall the agent tools. See [Agent Integrations](docs/AGENT_INTEGRATIONS.md) for manual installation, Claude Code, Cursor, and uninstall instructions.
+The skill directs Codex to use the MCP server first and fall back to structured CLI output when MCP is unavailable.
 
-## Features
+### Claude Code
 
-- Reports Mac storage usage and reclaimable developer data.
-- Groups cleanup candidates by Derived Data, previews, XCTest devices, simulators, runtimes, Device Support, logs, caches, archives, and temporary data.
-- Supports category-specific and cross-category selection.
-- Uses `simctl` for simulator device and runtime removal.
-- Protects active targets and checks for running development tools.
-- Supports scheduled cleanup for Derived Data, Xcode logs, and Xcode caches.
-- Supports Launch at Login through the native macOS login-item service.
-- Keeps a local JSON Lines cleanup history.
-- Provides versioned native CLI and local MCP tools for Codex, Claude, Cursor, and other compatible agents.
+First, complete the manual binary installation while the DMG is mounted. Then register the MCP server:
 
-## Agent tools
+```sh
+claude mcp add derived --scope user -- "$HOME/.local/bin/derived-mcp"
+```
 
-The current CLI and MCP agent-tools version is `1.0.2`. The CLI provides an aligned ASCII table for interactive use and structured JSON for scripts and agents.
+Install the optional workflow skill:
+
+```sh
+mkdir -p "$HOME/.claude/skills"
+rm -rf "$HOME/.claude/skills/derived-cleanup"
+ditto "/Volumes/Derived/.agent-tools/Integrations/derived-cleanup" \
+  "$HOME/.claude/skills/derived-cleanup"
+```
+
+Verify the connection with `claude mcp get derived`.
+
+### Cursor
+
+First, complete the manual binary installation. Then add Derived to `~/.cursor/mcp.json`:
+
+```json
+{
+  "mcpServers": {
+    "derived": {
+      "command": "/Users/YOUR_NAME/.local/bin/derived-mcp",
+      "args": []
+    }
+  }
+}
+```
+
+Replace `YOUR_NAME` with your macOS account name. To install the optional skill, copy `/Volumes/Derived/.agent-tools/Integrations/derived-cleanup` to `~/.cursor/skills/derived-cleanup`. Restart Cursor and confirm that the `derived` MCP server is connected.
+
+See [Agent Integrations](docs/AGENT_INTEGRATIONS.md) for manual Codex configuration, uninstallation, development installation, and protocol details.
+
+## Use the CLI
+
+The CLI provides aligned tables for interactive use and JSON for scripts and agents.
+
+| Command | Purpose |
+|---|---|
+| `derived scan` | Scan Xcode, Simulator, and XCTest storage and print a scan ID |
+| `derived list` | List candidates from one category in a previous scan |
+| `derived prepare` | Create an expiring cleanup plan for selected items or categories |
+| `derived delete` | Execute a prepared plan with its exact confirmation phrase |
+
+Start with a scan:
 
 ```sh
 derived --version
 derived scan
-derived scan --json
 ```
 
-For repository development, build the release products, install the CLI and MCP server, install the portable Codex skill, and register the MCP server with:
+Use the scan ID printed by `derived scan` to inspect a category and prepare a plan:
 
 ```sh
-scripts/install-codex-agent-tools.sh
+derived list --scan SCAN_ID --category derivedData --limit 20
+derived prepare --scan SCAN_ID --category previewData
 ```
 
-See [Agent Integrations](docs/AGENT_INTEGRATIONS.md) for the complete CLI workflow, MCP configuration, packaging, safety rules, and skill installation instructions.
+Replace `SCAN_ID` with the UUID printed by the scan. Do not include angle brackets. The `prepare` command prints the exact confirmation phrase and complete `derived delete` command for that plan.
+
+Use `--json` when another program will consume the output:
+
+```sh
+derived scan --json
+derived list --scan SCAN_ID --category derivedData --limit 20 --json
+```
+
+Scan IDs expire after 30 minutes. Cleanup plans expire after 10 minutes and can be executed once.
+
+## Features
+
+### Storage discovery
+
+- Scans Derived Data, SwiftUI previews, XCTest devices, simulators, runtimes, Device Support, logs, caches, archives, and temporary data.
+- Reports verified reclaimable bytes separately from logical APFS clone sizes.
+- Groups cleanup candidates by category and recommendation status.
+
+### Cleanup and automation
+
+- Cleans individual candidates, complete categories, or cross-category selections.
+- Uses `simctl` to remove simulator devices and runtimes through supported system operations.
+- Schedules cleanup for Derived Data, Xcode logs, and Xcode caches.
+- Supports Launch at Login and maintains a local JSON Lines cleanup history.
+
+### Safety
+
+- Detects active development tools and protects active targets.
+- Requires an expiring cleanup plan and exact confirmation before deletion.
+- Revalidates every candidate immediately before cleanup.
+- Never selects archives or simulator runtimes automatically.
 
 ## Safety model
 
-Derived validates every filesystem target against a fixed allowlist immediately before deletion. It rejects category roots, targets outside approved developer directories, malformed simulator identifiers, active targets, and symbolic-link escapes. Automatic cleanup waits until related development tools are closed and fails safely when process inspection is unavailable.
+Derived validates every cleanup target against a fixed allowlist. It rejects category roots, paths outside approved developer directories, malformed simulator identifiers, active targets, symbolic-link escapes, and candidates that changed after the plan was created.
 
-Archives and simulator runtimes are never selected automatically. XCTest APFS clone sizes are reported as logical sizes and are excluded from verified reclaimable totals.
+Automatic cleanup waits until related development tools are closed and fails safely when process inspection is unavailable. XCTest APFS clone sizes are reported as logical sizes and excluded from verified reclaimable totals.
 
 See [Safety](docs/SAFETY.md) for the complete deletion model and approved paths.
 
 ## Requirements
 
+### Run Derived
+
 - macOS 14.0 or later
+- Xcode for Simulator discovery and `simctl`-backed cleanup
+
+The DMG contains prebuilt universal applications and command-line tools. Building from source is not required.
+
+Derived is intentionally not sandboxed because it manages files under `~/Library/Developer` and invokes `xcrun simctl`.
+
+### Build from source
+
 - Xcode 26.4 or later
+- Swift 6.2 toolchain
 
-The DMG contains a prebuilt application, so users do not need to compile Derived in Xcode.
-
-The application is intentionally not sandboxed because it manages files under `~/Library/Developer` and invokes `xcrun simctl`.
-
-## Build
-
-1. Clone the repository.
-2. Open `Derived.xcodeproj` in Xcode.
-3. Select the `Derived` scheme.
-4. Build and run the macOS target.
+Clone the repository, open `Derived.xcodeproj`, select the `Derived` scheme, and build the macOS target.
 
 Command-line build:
 
@@ -112,7 +228,7 @@ xcodebuild \
   build
 ```
 
-Command-line tests:
+Run the application tests:
 
 ```sh
 xcodebuild \
@@ -147,7 +263,7 @@ Launch at Login requires a signed application installed in a stable location. It
 - `DerivedCLITests`: CLI argument, version, and human-readable output tests
 - `DerivedCoreTests`: agent integration and destructive-operation safeguards
 - `Tools`: native CLI and MCP executables
-- `Integrations`: portable agent skill
+- `Integrations`: portable agent skills and packaging metadata
 
 ## Privacy
 
@@ -155,7 +271,7 @@ Derived operates locally. It does not include analytics, advertising, accounts, 
 
 ## Contributing
 
-Contributions are welcome after the repository becomes public. Read [Contributing](CONTRIBUTING.md) before changing scanner, validation, or deletion behavior.
+Contributions are welcome. Read [Contributing](CONTRIBUTING.md) before changing scanner, validation, or deletion behavior.
 
 Maintainers should follow [Releasing Derived](docs/RELEASING.md) for signing, notarization, DMG generation, and MCP publication.
 
