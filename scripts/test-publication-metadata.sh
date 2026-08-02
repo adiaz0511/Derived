@@ -91,7 +91,38 @@ assert block_paths(manual, "path") == {
     "dist/*.sha256",
     "dist/server.json",
 }
+
+signed_build = step_block("Build, sign, and notarize release DMG")
+assert "--sparkle-private-key" in signed_build
+
+homebrew_checkout = step_block("Check out Homebrew tap")
+assert "repository: adiaz0511/homebrew-derived" in homebrew_checkout
+assert "ssh-key: ${{ secrets.HOMEBREW_TAP_DEPLOY_KEY }}" in homebrew_checkout
+
+homebrew_update = step_block("Update Homebrew packages")
+assert "scripts/update-homebrew-casks.sh" in homebrew_update
+
+appcast_upload = step_block("Upload Sparkle update feed")
+assert "uses: actions/upload-pages-artifact@v3" in appcast_upload
+assert "uses: actions/configure-pages@v5" in workflow
+assert "uses: actions/deploy-pages@v4" in workflow
+
+info_plist = Path("Configuration/Derived-Info.plist").read_text()
+assert "https://adiaz0511.github.io/Derived/appcast.xml" in info_plist
+assert "SUPublicEDKey" in info_plist
 PY
+
+readonly tap_test_root="$checksum_test_root/homebrew-tap"
+mkdir -p "$tap_test_root"
+scripts/update-homebrew-casks.sh \
+  --version 9.8.7 \
+  --sha256 0123456789abcdef0123456789abcdef0123456789abcdef0123456789abcdef \
+  --tap-root "$tap_test_root" >/dev/null
+for cask in derived derived-tools; do
+  /usr/bin/grep -q 'version "9.8.7"' "$tap_test_root/Casks/$cask.rb"
+  /usr/bin/grep -q 'sha256 "0123456789abcdef0123456789abcdef0123456789abcdef0123456789abcdef"' "$tap_test_root/Casks/$cask.rb"
+  /usr/bin/ruby -c "$tap_test_root/Casks/$cask.rb" >/dev/null
+done
 
 readonly test_artifact="$checksum_test_root/Derived-test.mcpb"
 readonly test_checksum="$test_artifact.sha256"

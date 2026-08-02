@@ -3,13 +3,17 @@ import AppKit
 @MainActor
 final class AppDelegate: NSObject, NSApplicationDelegate {
     private let model = AppModel()
+    private let softwareUpdateController = SoftwareUpdateController()
     private lazy var automationMonitor = CleanupAutomationMonitor(model: model)
     private var statusItemController: StatusItemController?
     private var wakeObserver: NSObjectProtocol?
 
     func applicationDidFinishLaunching(_ notification: Notification) {
         NSApp.setActivationPolicy(.accessory)
-        statusItemController = StatusItemController(model: model)
+        statusItemController = StatusItemController(
+            model: model,
+            softwareUpdateController: softwareUpdateController
+        )
         automationMonitor.start()
         wakeObserver = NSWorkspace.shared.notificationCenter.addObserver(
             forName: NSWorkspace.didWakeNotification,

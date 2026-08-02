@@ -53,11 +53,12 @@ scripts/build-release-dmg.sh \
   --version 1.0.2 \
   --architectures universal \
   --sign-identity "Developer ID Application: YOUR NAME (TEAM_ID)" \
+  --sparkle-private-key "/path/to/exported-sparkle-private-key" \
   --notary-profile derived-notary \
   --notarize
 ```
 
-The script signs the application, CLI, MCP server, and DMG with hardened runtime and secure timestamps. It submits the DMG, waits for notarization, staples the ticket, runs Gatekeeper assessment, and creates checksums. The MCPB is built from the same signed universal MCP executable contained in the notarized DMG.
+The script signs the application, CLI, MCP server, and DMG with hardened runtime and secure timestamps. It submits the DMG, waits for notarization, staples the application and DMG tickets, runs Gatekeeper assessment, and creates checksums. It also generates the signed Sparkle feed and app-only update ZIP. Delete the exported Sparkle private-key file after the build. The MCPB is built from the same signed universal MCP executable contained in the notarized DMG.
 
 ## GitHub release automation
 
@@ -68,6 +69,10 @@ Configure these GitHub Actions secrets:
 - `APP_STORE_CONNECT_API_KEY_ID`
 - `APP_STORE_CONNECT_API_ISSUER_ID`
 - `APP_STORE_CONNECT_API_PRIVATE_KEY_BASE64`
+- `SPARKLE_EDDSA_PRIVATE_KEY`
+- `HOMEBREW_TAP_DEPLOY_KEY`
+
+`SPARKLE_EDDSA_PRIVATE_KEY` contains the private EdDSA key exported by Sparkle's `generate_keys` tool. Keep the original in the release maintainer's Keychain. `HOMEBREW_TAP_DEPLOY_KEY` is a repository-scoped SSH deploy key with write access only to `adiaz0511/homebrew-derived`.
 
 Run the Release workflow manually with its default unsigned setting before the first public release. Then create and push the release tag:
 
@@ -77,6 +82,13 @@ git push origin v1.0.2
 ```
 
 The tag workflow publishes only the notarized DMG and MCPB as public GitHub Release assets. GitHub adds the source code ZIP and TAR.GZ archives automatically. The workflow continues generating and validating checksum files internally, but it does not publish those files as public Release assets.
+
+After publication, the same workflow performs two distribution updates:
+
+1. It creates an app-only ZIP, signs it with the Sparkle EdDSA key, and deploys the ZIP and `appcast.xml` through GitHub Pages. The feed is available at `https://adiaz0511.github.io/Derived/appcast.xml`.
+2. It updates the `derived` and `derived-tools` casks in `adiaz0511/homebrew-derived` with the release version and DMG checksum.
+
+The Sparkle feed and app-only ZIP are not public GitHub Release assets. The separate ZIP prevents the bundled Agent Tools installer from being treated as a second update application. The Homebrew casks reuse the published DMG, so Homebrew does not require a separate binary archive.
 
 The generated `dist/server.json` is stored as a GitHub Actions workflow artifact named `Derived-VERSION-mcp-registry-metadata` on tagged releases. Download that workflow artifact from the tagged Release run before publishing to the MCP Registry. The manual validation workflow artifact continues to include the DMG, MCPB, checksums, and `server.json`.
 

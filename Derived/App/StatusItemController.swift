@@ -9,10 +9,13 @@ final class StatusItemController {
     private var globalMouseMonitor: Any?
     private var localKeyMonitor: Any?
 
-    init(model: AppModel) {
+    init(model: AppModel, softwareUpdateController: SoftwareUpdateController) {
         self.model = model
         statusItem = NSStatusBar.system.statusItem(withLength: NSStatusItem.squareLength)
-        panelController = MenuBarPanelWindowController(model: model)
+        panelController = MenuBarPanelWindowController(
+            model: model,
+            softwareUpdateController: softwareUpdateController
+        )
 
         configureStatusButton()
         observeReclaimableBytes()

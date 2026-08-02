@@ -2,6 +2,7 @@ import SwiftUI
 
 struct PanelFooter: View {
     let model: AppModel
+    let softwareUpdateController: SoftwareUpdateController
     @State private var launchAtLogin = LaunchAtLoginController()
 
     var body: some View {
@@ -16,6 +17,8 @@ struct PanelFooter: View {
                 Divider()
                 Toggle("Launch at Login", systemImage: "play.circle", isOn: launchAtLoginBinding)
                     .disabled(launchAtLogin.isChanging)
+                Divider()
+                Button("Check for Updates…", systemImage: "arrow.triangle.2.circlepath", action: checkForUpdates)
                 Divider()
                 Button("Quit Derived", systemImage: "power", action: quit)
             }
@@ -59,5 +62,9 @@ struct PanelFooter: View {
 
     private func quit() {
         NSApplication.shared.terminate(nil)
+    }
+
+    private func checkForUpdates() {
+        softwareUpdateController.checkForUpdates()
     }
 }
