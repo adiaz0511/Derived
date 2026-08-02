@@ -5,7 +5,7 @@
   <p>
     <img src="https://img.shields.io/badge/macOS-14.0%2B-111827?logo=apple" alt="macOS 14.0 or later">
     <img src="https://img.shields.io/badge/Swift_Tools-6.2-F05138?logo=swift&logoColor=white" alt="Swift tools 6.2">
-    <img src="https://img.shields.io/badge/CLI_%2B_MCP-0.2.0-0A84FF" alt="CLI and MCP version 0.2.0">
+    <img src="https://img.shields.io/badge/CLI_%2B_MCP-1.0.0-0A84FF" alt="CLI and MCP version 1.0.0">
     <img src="https://img.shields.io/badge/License-MIT-30D158" alt="MIT License">
   </p>
 </div>
@@ -27,9 +27,10 @@ Derived is distributed as a notarized disk image so users do not need Xcode.
 The disk image includes the precompiled CLI, MCP server, and `derived-cleanup` skill.
 
 1. Open `Derived.dmg`.
-2. Double-click **Install Derived Agent Tools**.
-3. Restart Codex.
-4. Verify the installation:
+2. Open **Derived Agent Tools**.
+3. Select **Install for Codex**.
+4. Restart Codex.
+5. Verify the installation:
 
 ```sh
 "$HOME/.local/bin/derived" --version
@@ -42,7 +43,7 @@ Then ask Codex:
 Use $derived-cleanup to scan my developer storage.
 ```
 
-The installer uses only locations owned by the current user. It does not request administrator access. See [Agent Integrations](docs/AGENT_INTEGRATIONS.md) for manual installation, Claude Code, Cursor, and uninstall instructions.
+The notarized installer uses only locations owned by the current user. It does not request administrator access. Open the same application and select **Remove** to uninstall the agent tools. See [Agent Integrations](docs/AGENT_INTEGRATIONS.md) for manual installation, Claude Code, Cursor, and uninstall instructions.
 
 ## Features
 
@@ -58,7 +59,7 @@ The installer uses only locations owned by the current user. It does not request
 
 ## Agent tools
 
-The current CLI and MCP agent-tools version is `0.2.0`. The CLI provides an aligned ASCII table for interactive use and structured JSON for scripts and agents.
+The current CLI and MCP agent-tools version is `1.0.0`. The CLI provides an aligned ASCII table for interactive use and structured JSON for scripts and agents.
 
 ```sh
 derived --version
