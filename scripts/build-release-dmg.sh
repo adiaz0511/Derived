@@ -134,6 +134,8 @@ if [[ -n "$sign_identity" ]]; then
     CODE_SIGNING_REQUIRED=YES
     CODE_SIGN_STYLE=Manual
     CODE_SIGN_IDENTITY="$sign_identity"
+    CODE_SIGN_INJECT_BASE_ENTITLEMENTS=NO
+    OTHER_CODE_SIGN_FLAGS="--timestamp"
   )
 else
   app_signing_settings=(CODE_SIGNING_ALLOWED=NO)
@@ -170,6 +172,25 @@ if [[ -n "$sign_identity" ]]; then
     codesign --force --options runtime --timestamp --sign "$sign_identity" "$binary"
     codesign --verify --strict --verbose=2 "$binary"
   done
+
+  # A normal Xcode build signs the Sparkle framework wrapper but retains the
+  # development signatures on its nested helpers. Sign those helpers inside-out
+  # for Developer ID distribution before signing the containing app bundle.
+  readonly sparkle_framework="$app_path/Contents/Frameworks/Sparkle.framework"
+  readonly sparkle_version="$sparkle_framework/Versions/B"
+  [[ -d "$sparkle_version" ]] || { print -u2 "Sparkle framework was not embedded at $sparkle_version"; exit 1; }
+  codesign --force --options runtime --timestamp --sign "$sign_identity" \
+    "$sparkle_version/XPCServices/Installer.xpc"
+  codesign --force --options runtime --timestamp --preserve-metadata=entitlements --sign "$sign_identity" \
+    "$sparkle_version/XPCServices/Downloader.xpc"
+  codesign --force --options runtime --timestamp --sign "$sign_identity" \
+    "$sparkle_version/Autoupdate"
+  codesign --force --options runtime --timestamp --sign "$sign_identity" \
+    "$sparkle_version/Updater.app"
+  codesign --force --options runtime --timestamp --sign "$sign_identity" \
+    "$sparkle_framework"
+  codesign --force --options runtime --timestamp --sign "$sign_identity" \
+    "$app_path"
   codesign --verify --deep --strict --verbose=2 "$app_path"
 fi
 
