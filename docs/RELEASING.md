@@ -23,7 +23,7 @@ scripts/build-release-dmg.sh \
   --unsigned
 ```
 
-The command writes the DMG and checksum to `dist`. It also creates a matching universal MCPB package, MCPB checksum, and generated `dist/server.json`.
+The command writes the DMG and checksum to `dist`. It also creates a matching universal MCPB package, MCPB checksum, and generated `dist/server.json`. Each checksum records only its artifact filename, so it can be verified from the download directory with `shasum -a 256 -c FILE.sha256`.
 
 ## Configure signing
 

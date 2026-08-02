@@ -120,6 +120,9 @@ jobs:
             --sign-identity "$identity" \
             --notarize
 
+      - name: Verify portable release checksums
+        run: scripts/verify-portable-checksums.sh dist/*.sha256
+
       - name: Upload manual validation artifact
         if: github.event_name == 'workflow_dispatch'
         uses: actions/upload-artifact@v4

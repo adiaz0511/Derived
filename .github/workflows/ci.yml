@@ -40,7 +40,7 @@ jobs:
         run: |
           scripts/package-mcpb.sh 0.2.0
           test -f "dist/Derived-MCP-0.2.0-macOS-$(uname -m).mcpb"
-          shasum -a 256 -c "dist/Derived-MCP-0.2.0-macOS-$(uname -m).mcpb.sha256"
+          scripts/verify-portable-checksums.sh "dist/Derived-MCP-0.2.0-macOS-$(uname -m).mcpb.sha256"
 
       - name: Verify the existing application
         run: scripts/verify-app-regression.sh

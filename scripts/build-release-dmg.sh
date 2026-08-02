@@ -178,7 +178,11 @@ if $notarize; then
   spctl --assess --type open --context context:primary-signature --verbose=2 "$dmg_path"
 fi
 
-shasum -a 256 "$dmg_path" > "$dmg_path.sha256"
+(
+  cd "$output_dir"
+  shasum -a 256 "$artifact_name" > "$artifact_name.sha256"
+)
+scripts/verify-portable-checksums.sh "$dmg_path.sha256"
 if [[ "$architecture_mode" == native ]]; then
   readonly mcp_architecture_label="$architectures[1]"
 else

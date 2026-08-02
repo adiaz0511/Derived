@@ -46,7 +46,11 @@ rm -f "$output" "$output.sha256"
   /usr/bin/zip -q -r "$output" .
 )
 
-/usr/bin/shasum -a 256 "$output" > "$output.sha256"
+(
+  cd "${output:h}"
+  /usr/bin/shasum -a 256 "${output:t}" > "${output:t}.sha256"
+)
+scripts/verify-portable-checksums.sh "$output.sha256"
 readonly archive_hash="$(/usr/bin/shasum -a 256 "$output" | /usr/bin/awk '{print $1}')"
 readonly registry_output="$project_root/dist/server.json"
 /usr/bin/python3 - "$project_root/server.json" "$registry_output" "$expected_version" "$bundle_name" "$archive_hash" <<'PY'
