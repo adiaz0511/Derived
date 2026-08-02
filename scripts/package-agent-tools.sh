@@ -41,6 +41,10 @@ cp LICENSE "$archive_root/LICENSE"
 
 mkdir -p dist
 tar -C "$staging_root" -czf "dist/$archive_name.tar.gz" "$archive_name"
-shasum -a 256 "dist/$archive_name.tar.gz" > "dist/$archive_name.tar.gz.sha256"
+(
+  cd dist
+  shasum -a 256 "$archive_name.tar.gz" > "$archive_name.tar.gz.sha256"
+)
+scripts/verify-portable-checksums.sh "dist/$archive_name.tar.gz.sha256"
 
 print "Created dist/$archive_name.tar.gz from Derived agent tools $version"

@@ -3,6 +3,13 @@
 set -euo pipefail
 
 readonly project_root="${0:A:h:h}"
+readonly checksum_test_root="$(mktemp -d "${TMPDIR:-/tmp}/derived-checksum-test.XXXXXX")"
+
+function cleanup_checksum_test_root {
+  rm -rf "$checksum_test_root"
+}
+
+trap cleanup_checksum_test_root EXIT
 cd "$project_root"
 
 /usr/bin/diff -qr \
@@ -47,5 +54,20 @@ assert package["transport"]["type"] == "stdio"
 assert package["identifier"].endswith(".mcpb")
 assert re.fullmatch(r"[0-9a-f]{64}", package["fileSha256"])
 PY
+
+readonly test_artifact="$checksum_test_root/Derived-test.mcpb"
+readonly test_checksum="$test_artifact.sha256"
+print -n "portable checksum fixture" > "$test_artifact"
+(
+  cd "$checksum_test_root"
+  /usr/bin/shasum -a 256 "${test_artifact:t}" > "${test_checksum:t}"
+)
+scripts/verify-portable-checksums.sh "$test_checksum" >/dev/null
+
+/usr/bin/shasum -a 256 "$test_artifact" > "$test_checksum"
+if scripts/verify-portable-checksums.sh "$test_checksum" >/dev/null 2>&1; then
+  print -u2 "Absolute artifact paths must be rejected in checksum files."
+  exit 1
+fi
 
 print "Skill, plugin, MCPB, and MCP Registry metadata tests passed."
