@@ -11,6 +11,18 @@ enum CLICommand {
     case integrations(IntegrationCommand)
 }
 
+extension CLICommand {
+    var allowsUpdateNotice: Bool {
+        switch self {
+        case .version, .scan(json: false), .list(_, _, _, _, json: false),
+             .prepare(_, _, json: false), .integrations(.install), .integrations(.status):
+            true
+        case .help, .scan, .list, .prepare, .delete, .integrations(.update):
+            false
+        }
+    }
+}
+
 enum IntegrationCommand {
     case install(client: IntegrationClient?)
     case status

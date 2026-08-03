@@ -5,7 +5,11 @@ import SwiftUI
 final class MenuBarPanelWindowController: NSWindowController {
     private let hostingController: NSHostingController<MenuBarPanel>
 
-    init(model: AppModel, softwareUpdateController: SoftwareUpdateController) {
+    init(
+        model: AppModel,
+        softwareUpdateController: SoftwareUpdateController,
+        agentToolsUpdateController: AgentToolsUpdateController
+    ) {
         let contentSize = NSSize(
             width: DesignMetrics.panelWidth,
             height: DesignMetrics.panelHeight
@@ -19,7 +23,8 @@ final class MenuBarPanelWindowController: NSWindowController {
         hostingController = NSHostingController(
             rootView: MenuBarPanel(
                 model: model,
-                softwareUpdateController: softwareUpdateController
+                softwareUpdateController: softwareUpdateController,
+                agentToolsUpdateController: agentToolsUpdateController
             )
         )
 

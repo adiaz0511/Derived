@@ -3,7 +3,9 @@ import SwiftUI
 struct MenuBarPanel: View {
     let model: AppModel
     let softwareUpdateController: SoftwareUpdateController
+    let agentToolsUpdateController: AgentToolsUpdateController
     @State private var cleanupRequest: CleanupRequest?
+    @State private var isShowingAgentToolsUpdate = false
 
     var body: some View {
         VStack(spacing: 0) {
@@ -15,6 +17,11 @@ struct MenuBarPanel: View {
                             .id(PanelScrollTarget.top)
 
                         StorageSummaryCard(snapshot: model.storageSnapshot)
+
+                        AgentToolsUpdateCard(
+                            controller: agentToolsUpdateController,
+                            showUpdate: showAgentToolsUpdate
+                        )
 
                         PanelStatusBanner(report: model.report)
 
@@ -46,15 +53,25 @@ struct MenuBarPanel: View {
             Divider()
             PanelFooter(
                 model: model,
-                softwareUpdateController: softwareUpdateController
+                softwareUpdateController: softwareUpdateController,
+                agentToolsUpdateController: agentToolsUpdateController,
+                showAgentToolsUpdate: showAgentToolsUpdate
             )
         }
         .frame(width: DesignMetrics.panelWidth, height: DesignMetrics.panelHeight)
         .background(.ultraThinMaterial)
         .cleanupExecution(model: model, request: $cleanupRequest)
+        .sheet(isPresented: $isShowingAgentToolsUpdate) {
+            AgentToolsUpdateView(
+                controller: agentToolsUpdateController,
+                close: closeAgentToolsUpdate
+            )
+        }
         .task {
-            guard model.report == nil else { return }
-            await model.scan()
+            await agentToolsUpdateController.checkIfNeeded()
+            if model.report == nil {
+                await model.scan()
+            }
         }
     }
 
@@ -65,6 +82,14 @@ struct MenuBarPanel: View {
             scope: scope,
             preview: model.cleanupPreview(for: items)
         )
+    }
+
+    private func showAgentToolsUpdate() {
+        isShowingAgentToolsUpdate = true
+    }
+
+    private func closeAgentToolsUpdate() {
+        isShowingAgentToolsUpdate = false
     }
 
     #if DEBUG

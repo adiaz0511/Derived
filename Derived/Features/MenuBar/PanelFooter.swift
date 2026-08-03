@@ -3,6 +3,8 @@ import SwiftUI
 struct PanelFooter: View {
     let model: AppModel
     let softwareUpdateController: SoftwareUpdateController
+    let agentToolsUpdateController: AgentToolsUpdateController
+    let showAgentToolsUpdate: () -> Void
     @State private var launchAtLogin = LaunchAtLoginController()
 
     var body: some View {
@@ -19,6 +21,13 @@ struct PanelFooter: View {
                     .disabled(launchAtLogin.isChanging)
                 Divider()
                 Button("Check for Updates…", systemImage: "arrow.triangle.2.circlepath", action: checkForUpdates)
+                if agentToolsUpdateController.availableUpdate != nil {
+                    Button(
+                        "Update Agent Tools…",
+                        systemImage: "terminal",
+                        action: showAgentToolsUpdate
+                    )
+                }
                 Divider()
                 Button("Quit Derived", systemImage: "power", action: quit)
             }

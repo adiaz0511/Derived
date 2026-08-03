@@ -31,7 +31,7 @@ from pathlib import Path
 
 plugin = json.loads(Path("Integrations/codex-plugin/derived/.codex-plugin/plugin.json").read_text())
 assert plugin["name"] == "derived"
-assert plugin["version"] == "1.0.3"
+assert plugin["version"] == "1.0.4"
 assert plugin["skills"] == "./skills/"
 assert plugin["mcpServers"] == "./.mcp.json"
 assert plugin["interface"]["composerIcon"] == "./assets/derived-app-icon.png"
@@ -41,7 +41,7 @@ assert mcp_config["mcpServers"]["derived"]["command"] == "./scripts/launch-deriv
 
 manifest = json.loads(Path("Integrations/mcpb/manifest.json").read_text())
 assert manifest["name"] == "derived-mcp"
-assert manifest["version"] == "1.0.3"
+assert manifest["version"] == "1.0.4"
 assert manifest["server"]["type"] == "binary"
 assert manifest["server"]["entry_point"] == "server/derived-mcp"
 
@@ -104,8 +104,15 @@ assert "scripts/update-homebrew-casks.sh" in homebrew_update
 
 appcast_upload = step_block("Upload Sparkle update feed")
 assert "uses: actions/upload-pages-artifact@v3" in appcast_upload
+appcast_prepare = step_block("Prepare Sparkle update feed")
+assert "cp dist/tools-version.json dist/sparkle-site/" in appcast_prepare
 assert "uses: actions/configure-pages@v5" in workflow
 assert "uses: actions/deploy-pages@v4" in workflow
+
+release_script = Path("scripts/build-release-dmg.sh").read_text()
+assert 'Contents/Resources/AgentTools' in release_script
+assert 'tools-version.json' in release_script
+assert 'scripts/update-agent-tools.sh' in release_script
 
 info_plist = Path("Configuration/Derived-Info.plist").read_text()
 assert "https://adiaz0511.github.io/Derived/appcast.xml" in info_plist

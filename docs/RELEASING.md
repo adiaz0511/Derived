@@ -28,7 +28,7 @@ Create an unsigned universal DMG for layout and installation testing:
 
 ```sh
 scripts/build-release-dmg.sh \
-  --version 1.0.3 \
+  --version 1.0.4 \
   --architectures universal \
   --unsigned
 ```
@@ -50,7 +50,7 @@ xcrun notarytool store-credentials derived-notary \
 
 ```sh
 scripts/build-release-dmg.sh \
-  --version 1.0.3 \
+  --version 1.0.4 \
   --architectures universal \
   --sign-identity "Developer ID Application: YOUR NAME (TEAM_ID)" \
   --sparkle-private-key "/path/to/exported-sparkle-private-key" \
@@ -77,18 +77,19 @@ Configure these GitHub Actions secrets:
 Run the Release workflow manually with its default unsigned setting before the first public release. Then create and push the release tag:
 
 ```sh
-git tag v1.0.3
-git push origin v1.0.3
+git tag v1.0.4
+git push origin v1.0.4
 ```
 
 The tag workflow publishes only the notarized DMG and MCPB as public GitHub Release assets. GitHub adds the source code ZIP and TAR.GZ archives automatically. The workflow continues generating and validating checksum files internally, but it does not publish those files as public Release assets.
 
 After publication, the same workflow performs two distribution updates:
 
-1. It creates an app-only ZIP, signs it with the Sparkle EdDSA key, and deploys the ZIP and `appcast.xml` through GitHub Pages. The feed is available at `https://adiaz0511.github.io/Derived/appcast.xml`.
+1. It creates an application ZIP, signs it with the Sparkle EdDSA key, and deploys the ZIP and `appcast.xml` through GitHub Pages. The application contains the signed Agent Tools payload used to update DMG-managed installations.
 2. It updates the `derived` and `derived-tools` casks in `adiaz0511/homebrew-derived` with the release version and DMG checksum.
+3. It publishes `tools-version.json` through GitHub Pages for the CLI's advisory update check.
 
-The Sparkle feed and app-only ZIP are not public GitHub Release assets. The separate ZIP prevents the bundled Agent Tools installer from being treated as a second update application. The Homebrew casks reuse the published DMG, so Homebrew does not require a separate binary archive.
+The Sparkle feed, application ZIP, and tools version manifest are not public GitHub Release assets. The separate ZIP prevents the bundled Agent Tools installer from being treated as a second update application. The Homebrew casks reuse the published DMG, so Homebrew does not require a separate binary archive.
 
 The generated `dist/server.json` is stored as a GitHub Actions workflow artifact named `Derived-VERSION-mcp-registry-metadata` on tagged releases. Download that workflow artifact from the tagged Release run before publishing to the MCP Registry. The manual validation workflow artifact continues to include the DMG, MCPB, checksums, and `server.json`.
 
