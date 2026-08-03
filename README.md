@@ -31,8 +31,11 @@ Use Derived through the macOS app, the `derived` CLI, or the local `derived-mcp`
 
 ```sh
 brew tap adiaz0511/derived
+brew trust adiaz0511/derived
 brew install --cask derived
 ```
+
+The trust command is required once for the third-party tap.
 
 Update the app with:
 
@@ -56,6 +59,7 @@ The agent tools include the `derived` CLI, the `derived-mcp` server, and the `de
 
 ```sh
 brew tap adiaz0511/derived
+brew trust adiaz0511/derived
 brew install --cask derived-tools
 derived integrations install
 ```
