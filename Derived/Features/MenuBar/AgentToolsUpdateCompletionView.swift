@@ -5,24 +5,25 @@ struct AgentToolsUpdateCompletionView: View {
     let close: () -> Void
 
     var body: some View {
-        VStack(alignment: .leading) {
-            Label("Agent Tools Updated", systemImage: "checkmark.circle.fill")
-                .font(.title2)
-                .bold()
-                .foregroundStyle(.green)
+        VStack(spacing: 20) {
+            AgentToolsUpdateHeader(
+                title: "Agent Tools Updated",
+                version: nil,
+                message: result.detail,
+                systemImage: "checkmark.circle.fill",
+                tint: .green
+            )
 
-            Text(result.detail)
-                .foregroundStyle(.secondary)
+            Spacer(minLength: 0)
 
-            Spacer()
-
-            HStack {
+            HStack(spacing: 8) {
                 Spacer()
+
                 Button("Close", action: close)
                     .buttonStyle(.borderedProminent)
                     .keyboardShortcut(.defaultAction)
             }
         }
-        .padding()
+        .padding(24)
     }
 }
