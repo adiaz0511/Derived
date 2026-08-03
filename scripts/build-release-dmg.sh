@@ -172,7 +172,16 @@ if [[ -n "$sign_identity" ]]; then
     codesign --force --options runtime --timestamp --sign "$sign_identity" "$binary"
     codesign --verify --strict --verbose=2 "$binary"
   done
+fi
 
+readonly embedded_tools_root="$app_path/Contents/Resources/AgentTools"
+mkdir -p "$embedded_tools_root/bin" "$embedded_tools_root/Integrations"
+cp "$work_root/bin/derived" "$work_root/bin/derived-mcp" "$embedded_tools_root/bin/"
+cp scripts/update-agent-tools.sh "$embedded_tools_root/"
+chmod 755 "$embedded_tools_root/update-agent-tools.sh"
+ditto Integrations/derived-cleanup "$embedded_tools_root/Integrations/derived-cleanup"
+
+if [[ -n "$sign_identity" ]]; then
   # A normal Xcode build signs the Sparkle framework wrapper but retains the
   # development signatures on its nested helpers. Sign those helpers inside-out
   # for Developer ID distribution before signing the containing app bundle.
@@ -217,7 +226,8 @@ cp "$work_root/bin/derived" "$work_root/bin/derived-mcp" "$volume_root/.agent-to
 ditto Integrations/derived-cleanup "$volume_root/.agent-tools/Integrations/derived-cleanup"
 cp docs/AGENT_INTEGRATIONS.md "$volume_root/.agent-tools/AGENT_INTEGRATIONS.md"
 cp LICENSE "$volume_root/.agent-tools/LICENSE"
-cp scripts/install-codex-agent-tools.sh scripts/uninstall-codex-agent-tools.sh "$volume_root/.agent-tools/"
+cp scripts/install-codex-agent-tools.sh scripts/uninstall-codex-agent-tools.sh \
+  scripts/update-agent-tools.sh "$volume_root/.agent-tools/"
 chmod 755 "$volume_root/.agent-tools"/*.sh
 readonly background_path="$work_root/Derived-DMG-Background.png"
 readonly background_2x_path="$work_root/Derived-DMG-Background@2x.png"
@@ -264,6 +274,10 @@ fi
 )
 scripts/verify-portable-checksums.sh "$dmg_path.sha256"
 
+readonly tools_manifest_path="$output_dir/tools-version.json"
+printf '{\n  "schemaVersion": 1,\n  "version": "%s",\n  "releaseURL": "https://github.com/adiaz0511/Derived/releases/tag/v%s"\n}\n' \
+  "$version" "$version" > "$tools_manifest_path"
+
 if [[ -n "$sparkle_private_key" ]]; then
   readonly generate_appcast="$(find "$app_derived_data/SourcePackages/artifacts" -path '*/bin/generate_appcast' -type f -perm -111 -print -quit)"
   [[ -x "$generate_appcast" ]] || { print -u2 "Sparkle generate_appcast was not found in the resolved package."; exit 1; }
@@ -296,3 +310,4 @@ DERIVED_MCP_ARCHITECTURE="$mcp_architecture_label" \
   scripts/package-mcpb.sh "$version"
 print "Created $dmg_path"
 print "Created $dmg_path.sha256"
+print "Created $tools_manifest_path"

@@ -29,6 +29,7 @@ struct IntegrationManager {
     private let homeDirectory: URL
     private let invokedCLIURL: URL
     private let environment: [String: String]
+    private let executableLocator: CLIExecutableLocator
 
     init(
         fileManager: FileManager = .default,
@@ -40,6 +41,7 @@ struct IntegrationManager {
         self.homeDirectory = homeDirectory ?? fileManager.homeDirectoryForCurrentUser
         self.invokedCLIURL = invokedCLIURL
         self.environment = environment
+        executableLocator = CLIExecutableLocator(fileManager: fileManager, environment: environment)
     }
 
     func run(_ command: IntegrationCommand) throws -> String {
@@ -74,8 +76,17 @@ struct IntegrationManager {
         }
 
         try runProcess(brew, arguments: ["upgrade", "--cask", "derived-tools"], failureMessage: "Homebrew could not update derived-tools.")
-        let result = try install(requestedClient: nil)
-        return "Derived Agent Tools are current. \(result)"
+        guard let updatedCLI = executable(named: "derived") else {
+            throw IntegrationManagerError.commandFailed(
+                "Homebrew updated Derived Agent Tools, but the new CLI could not be found on PATH."
+            )
+        }
+        try runProcess(
+            updatedCLI,
+            arguments: ["integrations", "install"],
+            failureMessage: "Derived Agent Tools were updated, but their agent integrations could not be refreshed."
+        )
+        return "Derived Agent Tools are current."
     }
 
     private func status() -> String {
@@ -226,16 +237,7 @@ struct IntegrationManager {
     }
 
     private func resolvedCLIURL() -> URL {
-        let resolvedInvocation = invokedCLIURL.resolvingSymlinksInPath().standardizedFileURL
-        if fileManager.isExecutableFile(atPath: resolvedInvocation.path) {
-            return resolvedInvocation
-        }
-
-        if let executableFromPath = executable(named: invokedCLIURL.lastPathComponent) {
-            return executableFromPath.resolvingSymlinksInPath().standardizedFileURL
-        }
-
-        return resolvedInvocation
+        executableLocator.resolve(invokedCLIURL)
     }
 
     private var isHomebrewInstallation: Bool {
@@ -252,10 +254,7 @@ struct IntegrationManager {
     }
 
     private func executable(named name: String) -> URL? {
-        let paths = (environment["PATH"] ?? "").split(separator: ":")
-        return paths
-            .map { URL(fileURLWithPath: String($0)).appending(path: name) }
-            .first { fileManager.isExecutableFile(atPath: $0.path) }
+        executableLocator.executable(named: name)
     }
 
     private func runProcess(

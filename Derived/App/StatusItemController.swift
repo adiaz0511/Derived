@@ -9,12 +9,17 @@ final class StatusItemController {
     private var globalMouseMonitor: Any?
     private var localKeyMonitor: Any?
 
-    init(model: AppModel, softwareUpdateController: SoftwareUpdateController) {
+    init(
+        model: AppModel,
+        softwareUpdateController: SoftwareUpdateController,
+        agentToolsUpdateController: AgentToolsUpdateController
+    ) {
         self.model = model
         statusItem = NSStatusBar.system.statusItem(withLength: NSStatusItem.squareLength)
         panelController = MenuBarPanelWindowController(
             model: model,
-            softwareUpdateController: softwareUpdateController
+            softwareUpdateController: softwareUpdateController,
+            agentToolsUpdateController: agentToolsUpdateController
         )
 
         configureStatusButton()

@@ -41,10 +41,30 @@ struct DerivedCLI {
                 let manager = IntegrationManager()
                 print(try manager.run(integrationCommand))
             }
+            await printUpdateNoticeIfNeeded(for: command)
         } catch {
             FileHandle.standardError.write(Data("derived: \(error.localizedDescription)\n".utf8))
             exit(EXIT_FAILURE)
         }
+    }
+
+    private static func printUpdateNoticeIfNeeded(for command: CLICommand) async {
+        guard command.allowsUpdateNotice,
+              isatty(STDERR_FILENO) != 0 else {
+            return
+        }
+
+        let environment = ProcessInfo.processInfo.environment
+        let invocation = URL(fileURLWithPath: CommandLine.arguments[0])
+        let executableURL = CLIExecutableLocator(environment: environment).resolve(invocation)
+        guard let notice = await CLIUpdateNoticeChecker().notice(
+            currentVersion: DerivedAgentVersion.current,
+            executableURL: executableURL
+        ) else {
+            return
+        }
+
+        FileHandle.standardError.write(Data("\n\(notice.message)\n".utf8))
     }
 
     private static let help = """

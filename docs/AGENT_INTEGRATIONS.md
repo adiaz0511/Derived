@@ -7,7 +7,7 @@ Derived provides two native command-line products from the repository's Swift pa
 
 Both products use the same scanner, validation, and cleanup coordinator as the macOS application. The MCP server does not accept arbitrary paths.
 
-The current agent-tools version is `1.0.3`. The CLI reports it through `derived --version`, and the MCP server reports the same value in its initialization handshake.
+The current agent-tools version is `1.0.4`. The CLI reports it through `derived --version`, and the MCP server reports the same value in its initialization handshake.
 
 ## Install with Homebrew
 
@@ -34,7 +34,9 @@ derived integrations status
 derived integrations update
 ```
 
-`derived integrations update` runs the Homebrew upgrade and refreshes detected client configurations. DMG installations continue to update through **Derived Agent Tools**.
+`derived integrations update` runs the Homebrew upgrade and refreshes detected client configurations. The CLI also checks for a newer release at most once per day during interactive commands. Set `DERIVED_NO_UPDATE_CHECK=1` to disable this advisory check. JSON output and MCP responses never contain update notices.
+
+Derived can update DMG-installed tools in `~/.local/bin` when the application is also installed. The app never overwrites Homebrew-managed or development installations. Without the app, download the latest DMG and run **Derived Agent Tools** again.
 
 ## Install from the disk image
 
@@ -126,7 +128,7 @@ scripts/package-agent-tools.sh
 The packaging script derives the archive version from `derived --version`. An optional version argument validates an expected version and fails if it does not match the binary:
 
 ```sh
-scripts/package-agent-tools.sh 1.0.3
+scripts/package-agent-tools.sh 1.0.4
 ```
 
 ## Command-line workflow

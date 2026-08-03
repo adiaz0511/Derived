@@ -4,6 +4,7 @@ import AppKit
 final class AppDelegate: NSObject, NSApplicationDelegate {
     private let model = AppModel()
     private let softwareUpdateController = SoftwareUpdateController()
+    private let agentToolsUpdateController = AgentToolsUpdateController()
     private lazy var automationMonitor = CleanupAutomationMonitor(model: model)
     private var statusItemController: StatusItemController?
     private var wakeObserver: NSObjectProtocol?
@@ -12,8 +13,10 @@ final class AppDelegate: NSObject, NSApplicationDelegate {
         NSApp.setActivationPolicy(.accessory)
         statusItemController = StatusItemController(
             model: model,
-            softwareUpdateController: softwareUpdateController
+            softwareUpdateController: softwareUpdateController,
+            agentToolsUpdateController: agentToolsUpdateController
         )
+        Task { await agentToolsUpdateController.checkIfNeeded() }
         automationMonitor.start()
         wakeObserver = NSWorkspace.shared.notificationCenter.addObserver(
             forName: NSWorkspace.didWakeNotification,

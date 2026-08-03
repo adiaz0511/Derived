@@ -31,7 +31,7 @@ mkdir -p "$payload_root/bin" "$payload_root/Integrations" \
   "$payload_root/Integrations/derived-cleanup"
 
 print -r -- '#!/bin/zsh' > "$payload_root/bin/derived"
-print -r -- '[[ "${1:-}" == "--version" ]] && print "derived 1.0.3"' >> "$payload_root/bin/derived"
+print -r -- '[[ "${1:-}" == "--version" ]] && print "derived 1.0.4"' >> "$payload_root/bin/derived"
 print -r -- '#!/bin/zsh' > "$payload_root/bin/derived-mcp"
 print -r -- 'exit 0' >> "$payload_root/bin/derived-mcp"
 chmod 755 "$payload_root/bin/derived" "$payload_root/bin/derived-mcp"
@@ -62,7 +62,7 @@ FAKE_CODEX_STATE="$fake_codex_state" \
 FAKE_CODEX_LOG="$fake_codex_log" \
   /bin/zsh "$payload_root/install-codex-agent-tools.sh" >/dev/null
 
-[[ "$($test_bin/derived --version)" == "derived 1.0.3" ]]
+[[ "$($test_bin/derived --version)" == "derived 1.0.4" ]]
 [[ -x "$test_bin/derived-mcp" ]]
 [[ -f "$test_codex_root/skills/derived-cleanup/SKILL.md" ]]
 [[ -f "$test_codex_root/skills/unrelated-skill/SKILL.md" ]]

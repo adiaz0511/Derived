@@ -88,8 +88,11 @@ fi
 /bin/cp \
   "$project_root/scripts/install-codex-agent-tools.sh" \
   "$project_root/scripts/uninstall-codex-agent-tools.sh" \
+  "$project_root/scripts/update-agent-tools.sh" \
   "$payload_path/"
-/bin/chmod 755 "$payload_path/install-codex-agent-tools.sh" "$payload_path/uninstall-codex-agent-tools.sh"
+/bin/chmod 755 "$payload_path/install-codex-agent-tools.sh" \
+  "$payload_path/uninstall-codex-agent-tools.sh" \
+  "$payload_path/update-agent-tools.sh"
 /usr/bin/ditto \
   "$project_root/Integrations/derived-cleanup" \
   "$payload_path/Integrations/derived-cleanup"

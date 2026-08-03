@@ -66,6 +66,7 @@ jobs:
       - name: Test installer and publication metadata
         run: |
           scripts/test-agent-tools-install.sh
+          scripts/test-agent-tools-update.sh
           scripts/test-publication-metadata.sh
 
       - name: Validate signing secrets
@@ -202,6 +203,7 @@ jobs:
         run: |
           mkdir -p dist/sparkle-site
           cp dist/sparkle/* dist/sparkle-site/
+          cp dist/tools-version.json dist/sparkle-site/
 
       - name: Configure GitHub Pages
         if: github.event_name == 'push'
