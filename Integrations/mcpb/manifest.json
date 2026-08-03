@@ -2,7 +2,7 @@
   "manifest_version": "0.3",
   "name": "derived-mcp",
   "display_name": "Derived",
-  "version": "1.0.2",
+  "version": "1.0.3",
   "description": "Inspect and safely clean local Xcode, Simulator, and XCTest storage.",
   "long_description": "Derived scans local developer storage and requires an expiring cleanup plan plus explicit confirmation before permanent deletion.",
   "author": {

@@ -5,7 +5,7 @@
   <p>
     <img src="https://img.shields.io/badge/macOS-14.0%2B-111827?logo=apple" alt="macOS 14.0 or later">
     <img src="https://img.shields.io/badge/Swift_Tools-6.2-F05138?logo=swift&logoColor=white" alt="Swift tools 6.2">
-    <img src="https://img.shields.io/badge/CLI_%2B_MCP-1.0.2-0A84FF" alt="CLI and MCP version 1.0.2">
+    <img src="https://img.shields.io/badge/CLI_%2B_MCP-1.0.3-0A84FF" alt="CLI and MCP version 1.0.3">
     <img src="https://img.shields.io/badge/License-MIT-30D158" alt="MIT License">
   </p>
 </div>

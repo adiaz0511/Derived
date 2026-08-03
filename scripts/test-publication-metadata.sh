@@ -31,7 +31,7 @@ from pathlib import Path
 
 plugin = json.loads(Path("Integrations/codex-plugin/derived/.codex-plugin/plugin.json").read_text())
 assert plugin["name"] == "derived"
-assert plugin["version"] == "1.0.2"
+assert plugin["version"] == "1.0.3"
 assert plugin["skills"] == "./skills/"
 assert plugin["mcpServers"] == "./.mcp.json"
 assert plugin["interface"]["composerIcon"] == "./assets/derived-app-icon.png"
@@ -41,13 +41,13 @@ assert mcp_config["mcpServers"]["derived"]["command"] == "./scripts/launch-deriv
 
 manifest = json.loads(Path("Integrations/mcpb/manifest.json").read_text())
 assert manifest["name"] == "derived-mcp"
-assert manifest["version"] == "1.0.2"
+assert manifest["version"] == "1.0.3"
 assert manifest["server"]["type"] == "binary"
 assert manifest["server"]["entry_point"] == "server/derived-mcp"
 
 server = json.loads(Path("server.json").read_text())
 assert server["name"] == "io.github.adiaz0511/derived"
-assert server["version"] == "1.0.2"
+assert server["version"] == "1.0.3"
 package = server["packages"][0]
 assert package["registryType"] == "mcpb"
 assert package["transport"]["type"] == "stdio"
