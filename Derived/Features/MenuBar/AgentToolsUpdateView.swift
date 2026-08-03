@@ -30,7 +30,8 @@ struct AgentToolsUpdateView: View {
                 AgentToolsUpdateProgressView()
             }
         }
-        .frame(minWidth: 440, idealWidth: 480, minHeight: 260)
+        .frame(width: 460)
+        .frame(minHeight: 240)
     }
 
     private func update() {

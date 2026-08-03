@@ -7,14 +7,14 @@ struct AgentToolsUpdateFailureView: View {
     let close: () -> Void
 
     var body: some View {
-        VStack(alignment: .leading) {
-            Label("Agent Tools Could Not Be Updated", systemImage: "exclamationmark.triangle.fill")
-                .font(.title2)
-                .bold()
-                .foregroundStyle(.red)
-
-            Text("Your existing installation was not changed. Review the error and try again.")
-                .foregroundStyle(.secondary)
+        VStack(spacing: 20) {
+            AgentToolsUpdateHeader(
+                title: "Agent Tools Could Not Be Updated",
+                version: nil,
+                message: "Your existing installation was not changed. Review the error and try again.",
+                systemImage: "exclamationmark.triangle.fill",
+                tint: .red
+            )
 
             Text(message)
                 .font(.system(.body, design: .monospaced))
@@ -23,10 +23,11 @@ struct AgentToolsUpdateFailureView: View {
                 .frame(maxWidth: .infinity, alignment: .leading)
                 .background(.quaternary, in: .rect(cornerRadius: 8))
 
-            Spacer()
+            Spacer(minLength: 0)
 
-            HStack {
+            HStack(spacing: 8) {
                 Spacer()
+
                 Button("Close", action: close)
                     .keyboardShortcut(.cancelAction)
                 if availability.installationKind == .dmg {
@@ -36,6 +37,6 @@ struct AgentToolsUpdateFailureView: View {
                 }
             }
         }
-        .padding()
+        .padding(24)
     }
 }

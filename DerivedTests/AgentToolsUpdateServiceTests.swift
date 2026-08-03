@@ -21,10 +21,10 @@ struct AgentToolsUpdateServiceTests {
         try fileManager.createDirectory(at: installedBin, withIntermediateDirectories: true)
         try fileManager.createDirectory(at: installedSkill, withIntermediateDirectories: true)
 
-        try writeExecutable(version: "1.0.4", to: payloadBin.appending(path: "derived"))
-        try writeExecutable(version: "1.0.4", to: payloadBin.appending(path: "derived-mcp"))
-        try writeExecutable(version: "1.0.3", to: installedBin.appending(path: "derived"))
-        try writeExecutable(version: "1.0.3", to: installedBin.appending(path: "derived-mcp"))
+        try writeExecutable(version: "1.0.5", to: payloadBin.appending(path: "derived"))
+        try writeExecutable(version: "1.0.5", to: payloadBin.appending(path: "derived-mcp"))
+        try writeExecutable(version: "1.0.4", to: installedBin.appending(path: "derived"))
+        try writeExecutable(version: "1.0.4", to: installedBin.appending(path: "derived-mcp"))
         try Data("new skill".utf8).write(to: payloadSkill.appending(path: "SKILL.md"))
         try Data("old skill".utf8).write(to: installedSkill.appending(path: "SKILL.md"))
 
@@ -41,15 +41,15 @@ struct AgentToolsUpdateServiceTests {
         let service = AgentToolsUpdateService(homeDirectory: home, bundleResourceURL: resources)
         let availability = try #require(await service.availability())
         #expect(availability.installationKind == .dmg)
-        #expect(availability.installedVersion.description == "1.0.3")
-        #expect(availability.availableVersion.description == "1.0.4")
+        #expect(availability.installedVersion.description == "1.0.4")
+        #expect(availability.availableVersion.description == "1.0.5")
 
         let result = try await service.install(availability)
 
-        #expect(result.version == "1.0.4")
+        #expect(result.version == "1.0.5")
         #expect(try String(contentsOf: installedSkill.appending(path: "SKILL.md"), encoding: .utf8) == "new skill")
         let installedVersion = try run(installedBin.appending(path: "derived"))
-        #expect(installedVersion == "derived 1.0.4")
+        #expect(installedVersion == "derived 1.0.5")
     }
 
     private func writeExecutable(version: String, to url: URL) throws {
