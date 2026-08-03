@@ -12,7 +12,7 @@
     {
       "registryType": "mcpb",
       "identifier": "https://github.com/adiaz0511/Derived/releases/download/v1.0.3/Derived-MCP-1.0.3-macOS-universal.mcpb",
-      "fileSha256": "aa31f8d858cac89c138f7ed5d0f48f3404043b0d15f0b2b4b6f11fd0e24c0929",
+      "fileSha256": "35fa508912cc3d0b07131d7239e3ac7f501f94530293072f72879dd84c9495c1",
       "transport": {
         "type": "stdio"
       }
