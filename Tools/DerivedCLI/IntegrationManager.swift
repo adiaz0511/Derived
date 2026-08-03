@@ -226,7 +226,16 @@ struct IntegrationManager {
     }
 
     private func resolvedCLIURL() -> URL {
-        invokedCLIURL.resolvingSymlinksInPath().standardizedFileURL
+        let resolvedInvocation = invokedCLIURL.resolvingSymlinksInPath().standardizedFileURL
+        if fileManager.isExecutableFile(atPath: resolvedInvocation.path) {
+            return resolvedInvocation
+        }
+
+        if let executableFromPath = executable(named: invokedCLIURL.lastPathComponent) {
+            return executableFromPath.resolvingSymlinksInPath().standardizedFileURL
+        }
+
+        return resolvedInvocation
     }
 
     private var isHomebrewInstallation: Bool {
