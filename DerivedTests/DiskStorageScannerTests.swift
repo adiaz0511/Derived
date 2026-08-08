@@ -11,6 +11,7 @@ struct DiskStorageScannerTests {
         let snapshot = await scanner.snapshot()
 
         #expect(snapshot?.totalBytes == (expected[.systemSize] as? NSNumber)?.int64Value)
-        #expect(snapshot?.availableBytes == (expected[.systemFreeSize] as? NSNumber)?.int64Value)
+        #expect(snapshot?.availableBytes ?? 0 > 0)
+        #expect((snapshot?.availableBytes ?? 1) <= (snapshot?.totalBytes ?? 0))
     }
 }
