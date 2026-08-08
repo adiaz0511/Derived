@@ -7,7 +7,7 @@ Derived provides two native command-line products from the repository's Swift pa
 
 Both products use the same scanner, validation, and cleanup coordinator as the macOS application. The MCP server does not accept arbitrary paths.
 
-The current agent-tools version is `1.0.5`. The CLI reports it through `derived --version`, and the MCP server reports the same value in its initialization handshake.
+The current agent-tools version is `1.0.6`. The CLI reports it through `derived --version`, and the MCP server reports the same value in its initialization handshake.
 
 ## Install with Homebrew
 
@@ -128,7 +128,7 @@ scripts/package-agent-tools.sh
 The packaging script derives the archive version from `derived --version`. An optional version argument validates an expected version and fails if it does not match the binary:
 
 ```sh
-scripts/package-agent-tools.sh 1.0.5
+scripts/package-agent-tools.sh 1.0.6
 ```
 
 ## Command-line workflow

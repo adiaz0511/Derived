@@ -5,14 +5,25 @@ nonisolated protocol CleanupHistoryStoring: Sendable {
 }
 
 actor CleanupHistoryStore: CleanupHistoryStoring {
+    static let defaultMaximumBytes = 1_048_576
+    static let defaultRetainedBytes = 786_432
+
     let fileURL: URL
     private let fileManager: FileManager
+    private let maximumBytes: Int
+    private let retainedBytes: Int
 
     init(
         fileURL: URL? = nil,
-        fileManager: FileManager = .default
+        fileManager: FileManager = .default,
+        maximumBytes: Int = CleanupHistoryStore.defaultMaximumBytes,
+        retainedBytes: Int = CleanupHistoryStore.defaultRetainedBytes
     ) {
+        precondition(maximumBytes > 0)
+        precondition(retainedBytes > 0 && retainedBytes < maximumBytes)
         self.fileManager = fileManager
+        self.maximumBytes = maximumBytes
+        self.retainedBytes = retainedBytes
         if let fileURL {
             self.fileURL = fileURL
         } else {
@@ -43,6 +54,22 @@ actor CleanupHistoryStore: CleanupHistoryStoring {
         } else {
             try data.write(to: fileURL, options: .atomic)
         }
+
+        try compactIfNeeded()
+    }
+
+    private func compactIfNeeded() throws {
+        let attributes = try fileManager.attributesOfItem(atPath: fileURL.path)
+        guard let fileSize = attributes[.size] as? NSNumber,
+              fileSize.intValue > maximumBytes else { return }
+
+        let history = try Data(contentsOf: fileURL)
+        let retainedStart = max(0, history.count - retainedBytes)
+        let retainedSlice = history[retainedStart...]
+        let alignedStart = retainedSlice.firstIndex(of: 0x0A).map { history.index(after: $0) }
+            ?? history.startIndex
+        let compacted = history[alignedStart...]
+        try Data(compacted).write(to: fileURL, options: .atomic)
     }
 
     private nonisolated func migrateLegacyHistoryIfNeeded(
