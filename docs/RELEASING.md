@@ -28,7 +28,7 @@ Create an unsigned universal DMG for layout and installation testing:
 
 ```sh
 scripts/build-release-dmg.sh \
-  --version 1.0.5 \
+  --version 1.0.6 \
   --architectures universal \
   --unsigned
 ```
@@ -50,7 +50,7 @@ xcrun notarytool store-credentials derived-notary \
 
 ```sh
 scripts/build-release-dmg.sh \
-  --version 1.0.5 \
+  --version 1.0.6 \
   --architectures universal \
   --sign-identity "Developer ID Application: YOUR NAME (TEAM_ID)" \
   --sparkle-private-key "/path/to/exported-sparkle-private-key" \
@@ -77,8 +77,8 @@ Configure these GitHub Actions secrets:
 Run the Release workflow manually with its default unsigned setting before the first public release. Then create and push the release tag:
 
 ```sh
-git tag v1.0.5
-git push origin v1.0.5
+git tag v1.0.6
+git push origin v1.0.6
 ```
 
 The tag workflow publishes only the notarized DMG and MCPB as public GitHub Release assets. GitHub adds the source code ZIP and TAR.GZ archives automatically. The workflow continues generating and validating checksum files internally, but it does not publish those files as public Release assets.

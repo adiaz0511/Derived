@@ -6,6 +6,8 @@ struct PanelFooter: View {
     let agentToolsUpdateController: AgentToolsUpdateController
     let showAgentToolsUpdate: () -> Void
     @State private var launchAtLogin = LaunchAtLoginController()
+    @Environment(\.calendar) private var calendar
+    @Environment(\.locale) private var locale
 
     var body: some View {
         HStack {
@@ -39,8 +41,15 @@ struct PanelFooter: View {
                 Text("Selected: \(ByteCountFormat.string(model.selectedBytes))")
                     .bold()
                 if let date = model.report?.scannedAt {
-                    Text("Scanned \(date.formatted(date: .omitted, time: .shortened))")
-                        .foregroundStyle(.secondary)
+                    TimelineView(.periodic(from: .now, by: 60)) { context in
+                        Text(ScanTimestampText.string(
+                            scannedAt: date,
+                            now: context.date,
+                            calendar: calendar,
+                            locale: locale
+                        ))
+                    }
+                    .foregroundStyle(.secondary)
                 }
             }
 
