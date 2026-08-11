@@ -73,6 +73,10 @@ final class SettingsStore {
         }
     }
 
+    func removePinnedRuntimeIDs(_ runtimeIDs: some Sequence<String>) {
+        settings.pinnedRuntimeIDs.subtract(runtimeIDs)
+    }
+
     private func save() {
         guard let data = try? JSONEncoder().encode(settings) else { return }
         defaults.set(data, forKey: Self.key)

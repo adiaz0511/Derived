@@ -41,7 +41,7 @@ struct CLIOutputTests {
     }
 
     @Test func versionDescriptionUsesCurrentAgentVersion() {
-        #expect(DerivedAgentVersion.cliDescription == "derived 1.0.6")
+        #expect(DerivedAgentVersion.cliDescription == "derived 1.0.7")
     }
 
     @Test func cleanupPlanExplainsConfirmationAndPrintsDeleteCommand() {

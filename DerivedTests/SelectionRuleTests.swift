@@ -26,20 +26,31 @@ struct SelectionRuleTests {
     }
 
     @Test func runtimesAreNeverRecommended() async throws {
-        let runner = StubCommandRunner(output: """
+        let runner = StubCommandRunner(outputs: [
+            ["simctl", "list", "--json", "devices", "runtimes"]: """
         {
           "devices": {},
           "runtimes": [
             {"identifier":"com.apple.CoreSimulator.SimRuntime.iOS-26-0","name":"iOS 26.0","version":"26.0","isAvailable":true}
           ]
         }
-        """)
+        """,
+            ["simctl", "runtime", "list", "--json"]: """
+        {
+          "1C1B6832-7CE2-4036-A57D-44D16762519E": {
+            "identifier": "1C1B6832-7CE2-4036-A57D-44D16762519E",
+            "runtimeIdentifier": "com.apple.CoreSimulator.SimRuntime.iOS-26-0"
+          }
+        }
+        """
+        ])
 
         let result = await CoreSimulatorScanner(runner: runner).scan(pinnedRuntimeIDs: [])
         let runtime = try #require(result.items.first)
 
         #expect(!runtime.isRecommended)
         #expect(runtime.runtime?.isNewestForPlatform == true)
+        #expect(runtime.removalMethod == .simulatorRuntime(identifier: "1C1B6832-7CE2-4036-A57D-44D16762519E"))
     }
 
     @Test func recentDerivedDataLogsAndCachesAreAlwaysDiscoveredAndRecommended() async throws {
@@ -106,13 +117,22 @@ struct SelectionRuleTests {
 }
 
 private actor StubCommandRunner: CommandRunning {
-    let output: String
+    let outputs: [[String]: String]
 
-    init(output: String) {
-        self.output = output
+    init(outputs: [[String]: String]) {
+        self.outputs = outputs
     }
 
     func run(executable: String, arguments: [String]) async throws -> CommandResult {
-        CommandResult(executable: executable, arguments: arguments, standardOutput: output, standardError: "", exitCode: 0)
+        guard let output = outputs[arguments] else {
+            return CommandResult(
+                executable: executable,
+                arguments: arguments,
+                standardOutput: "",
+                standardError: "Unexpected command",
+                exitCode: 1
+            )
+        }
+        return CommandResult(executable: executable, arguments: arguments, standardOutput: output, standardError: "", exitCode: 0)
     }
 }

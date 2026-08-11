@@ -110,6 +110,20 @@ struct CleanupAutomationSettingsTests {
         #expect(defaults.data(forKey: "cleanupSettings") != nil)
     }
 
+    @Test func settingsStoreRemovesPinsForDeletedRuntimes() throws {
+        let suiteName = "DerivedTests-\(UUID().uuidString)"
+        let defaults = try #require(UserDefaults(suiteName: suiteName))
+        defer { defaults.removePersistentDomain(forName: suiteName) }
+
+        let store = SettingsStore(defaults: defaults)
+        store.setPinned(true, runtimeID: "deleted-runtime")
+        store.setPinned(true, runtimeID: "retained-runtime")
+
+        store.removePinnedRuntimeIDs(["deleted-runtime"])
+
+        #expect(store.settings.pinnedRuntimeIDs == ["retained-runtime"])
+    }
+
     private var utcCalendar: Calendar {
         var calendar = Calendar(identifier: .gregorian)
         calendar.timeZone = TimeZone(secondsFromGMT: 0) ?? .current

@@ -25,6 +25,11 @@ actor CoreSimulatorScanner {
         let bundlePath: String?
     }
 
+    private struct RuntimeDiskImage: Decodable {
+        let identifier: String?
+        let runtimeIdentifier: String?
+    }
+
     private let runner: any CommandRunning
 
     init(runner: any CommandRunning = FoundationCommandRunner()) {
@@ -43,19 +48,47 @@ actor CoreSimulatorScanner {
             }
 
             let payload = try JSONDecoder().decode(SimctlPayload.self, from: Data(result.standardOutput.utf8))
-            let runtimes = payload.runtimes ?? []
+            let runtimes = (payload.runtimes ?? []).filter { $0.isAvailable ?? true }
+            let diskImageResult = try await runner.run(
+                executable: "/usr/bin/xcrun",
+                arguments: ["simctl", "runtime", "list", "--json"]
+            )
+            let diskImageIdentifiers: [String: String]
+            var warnings: [String] = []
+            if diskImageResult.succeeded {
+                do {
+                    diskImageIdentifiers = try Self.runtimeDeletionIdentifiers(from: Data(diskImageResult.standardOutput.utf8))
+                } catch {
+                    diskImageIdentifiers = [:]
+                    warnings.append("Simulator runtime deletion identifiers could not be read: \(error.localizedDescription)")
+                }
+            } else {
+                diskImageIdentifiers = [:]
+                let detail = diskImageResult.standardError.trimmingCharacters(in: .whitespacesAndNewlines)
+                warnings.append("Simulator runtime deletion identifiers could not be discovered: \(detail)")
+            }
             let newestIDs = Self.newestRuntimeIDs(runtimes: runtimes)
             let runtimeItems = runtimes.map { runtime in
-                makeRuntimeItem(runtime, isNewest: newestIDs.contains(runtime.identifier), isPinned: pinnedRuntimeIDs.contains(runtime.identifier))
+                makeRuntimeItem(
+                    runtime,
+                    deletionIdentifier: diskImageIdentifiers[runtime.identifier] ?? runtime.identifier,
+                    isNewest: newestIDs.contains(runtime.identifier),
+                    isPinned: pinnedRuntimeIDs.contains(runtime.identifier)
+                )
             }
             let deviceItems = makeDeviceItems(payload.devices ?? [:])
-            return (runtimeItems + deviceItems, [])
+            return (runtimeItems + deviceItems, warnings)
         } catch {
             return ([], ["simctl output could not be read: \(error.localizedDescription)"])
         }
     }
 
-    private func makeRuntimeItem(_ runtime: Runtime, isNewest: Bool, isPinned: Bool) -> CleanupItem {
+    private func makeRuntimeItem(
+        _ runtime: Runtime,
+        deletionIdentifier: String,
+        isNewest: Bool,
+        isPinned: Bool
+    ) -> CleanupItem {
         let platform = Self.platform(for: runtime)
         let isPrerelease = Self.isPrerelease(name: runtime.name, version: runtime.version, buildVersion: runtime.buildversion)
         let information = RuntimeInformation(
@@ -84,7 +117,7 @@ actor CoreSimulatorScanner {
             safety: (isNewest || isPinned) ? .highRisk : .caution,
             reason: "Installed runtimes support simulator devices. They are never selected automatically. \(warnings)",
             isRecommended: false,
-            removalMethod: .simulatorRuntime(identifier: runtime.identifier),
+            removalMethod: .simulatorRuntime(identifier: deletionIdentifier),
             runtime: information,
             isActive: false
         )
@@ -128,6 +161,15 @@ actor CoreSimulatorScanner {
     static func newestRuntimeIDs(from data: Data) throws -> Set<String> {
         let payload = try JSONDecoder().decode(SimctlPayload.self, from: data)
         return newestRuntimeIDs(runtimes: payload.runtimes ?? [])
+    }
+
+    static func runtimeDeletionIdentifiers(from data: Data) throws -> [String: String] {
+        let diskImages = try JSONDecoder().decode([String: RuntimeDiskImage].self, from: data)
+        return diskImages.reduce(into: [:]) { identifiers, entry in
+            let (dictionaryIdentifier, diskImage) = entry
+            guard let runtimeIdentifier = diskImage.runtimeIdentifier else { return }
+            identifiers[runtimeIdentifier] = diskImage.identifier ?? dictionaryIdentifier
+        }
     }
 
     private static func newestRuntimeIDs(runtimes: [Runtime]) -> Set<String> {

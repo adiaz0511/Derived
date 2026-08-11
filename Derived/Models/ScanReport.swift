@@ -17,4 +17,13 @@ struct ScanReport: Sendable {
     func items(in category: CleanupCategory) -> [CleanupItem] {
         items.filter { $0.category == category }
     }
+
+    func removingItems(withIDs removedIDs: Set<String>) -> ScanReport {
+        ScanReport(
+            scannedAt: scannedAt,
+            items: items.filter { !removedIDs.contains($0.id) },
+            activeProcesses: activeProcesses,
+            warnings: warnings
+        )
+    }
 }
