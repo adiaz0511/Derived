@@ -19,6 +19,17 @@ struct SizeAndCommandTests {
         #expect(snapshot.usedFraction == 0.75)
     }
 
+    @Test func scanReportRemovesSuccessfullyDeletedItems() {
+        let removed = fixture(id: "removed", bytes: 4_000, recommended: true)
+        let retained = fixture(id: "retained", bytes: 6_000, recommended: false)
+        let report = ScanReport(scannedAt: .now, items: [removed, retained], activeProcesses: [], warnings: [])
+
+        let updated = report.removingItems(withIDs: [removed.id])
+
+        #expect(updated.items.map(\.id) == [retained.id])
+        #expect(updated.discoveredBytes == retained.byteCount)
+    }
+
     @Test func constructsSupportedSimulatorCommands() {
         let udid = "D83DCE7D-8848-4F40-B45A-55A5C2E47D06"
         let item = CleanupItem(
@@ -43,7 +54,7 @@ struct SizeAndCommandTests {
     }
 
     @Test func constructsSupportedRuntimeDeletionCommand() {
-        let identifier = "com.apple.CoreSimulator.SimRuntime.iOS-26-5"
+        let identifier = "5506559C-45FD-409E-B1BB-E749E40D53A8"
         let item = CleanupItem(
             id: "runtime:\(identifier)",
             name: "iOS 26.5",

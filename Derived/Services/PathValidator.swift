@@ -76,7 +76,8 @@ nonisolated struct PathValidator: Sendable {
 
     private func validateRuntimeIdentifier(_ identifier: String) -> PathValidationResult {
         let prefix = "com.apple.CoreSimulator.SimRuntime."
-        guard identifier.hasPrefix(prefix), identifier.count > prefix.count else {
+        let isLegacyRuntimeIdentifier = identifier.hasPrefix(prefix) && identifier.count > prefix.count
+        guard UUID(uuidString: identifier) != nil || isLegacyRuntimeIdentifier else {
             return .init(isValid: false, message: "The runtime identifier is not recognized.")
         }
         return .init(isValid: true, message: "Validated for removal through xcrun simctl runtime delete.")

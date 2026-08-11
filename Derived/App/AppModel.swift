@@ -140,19 +140,29 @@ final class AppModel {
         guard !isCleaning else { return nil }
         isCleaning = true
 
-        let report = await cleanupCoordinator.execute(
+        let cleanupReport = await cleanupCoordinator.execute(
             items: preview.items,
             pinnedRuntimeIDs: settingsStore.settings.pinnedRuntimeIDs,
             highRiskConfirmed: highRiskConfirmed,
             blockWhenRelatedProcessesAreActive: blockWhenRelatedProcessesAreActive,
             trigger: trigger
         )
-        lastCleanupReport = report
-        selectedItemIDs.subtract(report.successfulResults.map(\.itemID))
+        lastCleanupReport = cleanupReport
+
+        let successfulIDs = Set(cleanupReport.successfulResults.map(\.itemID))
+        let removedRuntimeIDs = preview.items.compactMap { item -> String? in
+            guard successfulIDs.contains(item.id) else { return nil }
+            return item.runtime?.id
+        }
+        settingsStore.removePinnedRuntimeIDs(removedRuntimeIDs)
+        selectedItemIDs.subtract(successfulIDs)
+        report = report?.removingItems(withIDs: successfulIDs)
+        itemsByCategory = Dictionary(grouping: report?.items ?? [], by: \.category)
+        storageSnapshot = await diskStorageScanner.snapshot()
         isCleaning = false
 
         Task { await scan() }
-        return report
+        return cleanupReport
     }
 
     func runDueAutomations(at date: Date = .now) async {

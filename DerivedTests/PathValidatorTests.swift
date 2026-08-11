@@ -25,4 +25,24 @@ struct PathValidatorTests {
 
         #expect(!result.isValid)
     }
+
+    @Test func acceptsRuntimeDiskImageIdentifier() {
+        let identifier = "5506559C-45FD-409E-B1BB-E749E40D53A8"
+        let item = CleanupItem(
+            id: "runtime:com.apple.CoreSimulator.SimRuntime.watchOS-26-5",
+            name: "watchOS 26.5",
+            category: .simulatorRuntimes,
+            byteCount: 0,
+            path: "simctl://runtime/com.apple.CoreSimulator.SimRuntime.watchOS-26-5",
+            modifiedAt: nil,
+            safety: .highRisk,
+            reason: "Newest runtime",
+            isRecommended: false,
+            removalMethod: .simulatorRuntime(identifier: identifier),
+            runtime: nil,
+            isActive: false
+        )
+
+        #expect(PathValidator(allowedRoots: [root]).validate(item).isValid)
+    }
 }
