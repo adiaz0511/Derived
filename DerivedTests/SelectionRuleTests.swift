@@ -39,7 +39,8 @@ struct SelectionRuleTests {
         {
           "1C1B6832-7CE2-4036-A57D-44D16762519E": {
             "identifier": "1C1B6832-7CE2-4036-A57D-44D16762519E",
-            "runtimeIdentifier": "com.apple.CoreSimulator.SimRuntime.iOS-26-0"
+            "runtimeIdentifier": "com.apple.CoreSimulator.SimRuntime.iOS-26-0",
+            "sizeBytes": 8494282293
           }
         }
         """
@@ -50,6 +51,7 @@ struct SelectionRuleTests {
 
         #expect(!runtime.isRecommended)
         #expect(runtime.runtime?.isNewestForPlatform == true)
+        #expect(runtime.byteCount == 8_494_282_293)
         #expect(runtime.removalMethod == .simulatorRuntime(identifier: "1C1B6832-7CE2-4036-A57D-44D16762519E"))
     }
 

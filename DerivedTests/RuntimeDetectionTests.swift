@@ -22,22 +22,22 @@ struct RuntimeDetectionTests {
         #expect(!ids.contains("com.apple.CoreSimulator.SimRuntime.iOS-27-0"))
     }
 
-    @Test func mapsRuntimeIdentifiersToDeletionDiskImageIdentifiers() throws {
+    @Test func mapsRuntimeIdentifiersToPhysicalDiskImageInformation() throws {
         let json = """
         {
           "5506559C-45FD-409E-B1BB-E749E40D53A8": {
             "identifier": "5506559C-45FD-409E-B1BB-E749E40D53A8",
-            "runtimeIdentifier": "com.apple.CoreSimulator.SimRuntime.watchOS-26-5"
+            "runtimeIdentifier": "com.apple.CoreSimulator.SimRuntime.watchOS-26-5",
+            "sizeBytes": 3935033546
           }
         }
         """
 
-        let identifiers = try CoreSimulatorScanner.runtimeDeletionIdentifiers(from: Data(json.utf8))
+        let information = try CoreSimulatorScanner.runtimeDiskImageInformation(from: Data(json.utf8))
+        let watchRuntime = try #require(information["com.apple.CoreSimulator.SimRuntime.watchOS-26-5"])
 
-        #expect(
-            identifiers["com.apple.CoreSimulator.SimRuntime.watchOS-26-5"]
-                == "5506559C-45FD-409E-B1BB-E749E40D53A8"
-        )
+        #expect(watchRuntime.deletionIdentifier == "5506559C-45FD-409E-B1BB-E749E40D53A8")
+        #expect(watchRuntime.sizeBytes == 3_935_033_546)
     }
 
     @Test func excludesUnavailableRuntimesFromScanResults() async throws {

@@ -28,6 +28,12 @@ actor CoreSimulatorScanner {
     private struct RuntimeDiskImage: Decodable {
         let identifier: String?
         let runtimeIdentifier: String?
+        let sizeBytes: Int64?
+    }
+
+    struct RuntimeDiskImageInformation: Equatable {
+        let deletionIdentifier: String
+        let sizeBytes: Int64?
     }
 
     private let runner: any CommandRunning
@@ -53,25 +59,25 @@ actor CoreSimulatorScanner {
                 executable: "/usr/bin/xcrun",
                 arguments: ["simctl", "runtime", "list", "--json"]
             )
-            let diskImageIdentifiers: [String: String]
+            let diskImageInformation: [String: RuntimeDiskImageInformation]
             var warnings: [String] = []
             if diskImageResult.succeeded {
                 do {
-                    diskImageIdentifiers = try Self.runtimeDeletionIdentifiers(from: Data(diskImageResult.standardOutput.utf8))
+                    diskImageInformation = try Self.runtimeDiskImageInformation(from: Data(diskImageResult.standardOutput.utf8))
                 } catch {
-                    diskImageIdentifiers = [:]
-                    warnings.append("Simulator runtime deletion identifiers could not be read: \(error.localizedDescription)")
+                    diskImageInformation = [:]
+                    warnings.append("Simulator runtime disk-image metadata could not be read: \(error.localizedDescription)")
                 }
             } else {
-                diskImageIdentifiers = [:]
+                diskImageInformation = [:]
                 let detail = diskImageResult.standardError.trimmingCharacters(in: .whitespacesAndNewlines)
-                warnings.append("Simulator runtime deletion identifiers could not be discovered: \(detail)")
+                warnings.append("Simulator runtime disk-image metadata could not be discovered: \(detail)")
             }
             let newestIDs = Self.newestRuntimeIDs(runtimes: runtimes)
             let runtimeItems = runtimes.map { runtime in
                 makeRuntimeItem(
                     runtime,
-                    deletionIdentifier: diskImageIdentifiers[runtime.identifier] ?? runtime.identifier,
+                    diskImage: diskImageInformation[runtime.identifier],
                     isNewest: newestIDs.contains(runtime.identifier),
                     isPinned: pinnedRuntimeIDs.contains(runtime.identifier)
                 )
@@ -85,7 +91,7 @@ actor CoreSimulatorScanner {
 
     private func makeRuntimeItem(
         _ runtime: Runtime,
-        deletionIdentifier: String,
+        diskImage: RuntimeDiskImageInformation?,
         isNewest: Bool,
         isPinned: Bool
     ) -> CleanupItem {
@@ -111,13 +117,13 @@ actor CoreSimulatorScanner {
             id: "runtime:\(runtime.identifier)",
             name: runtime.name,
             category: .simulatorRuntimes,
-            byteCount: Self.directorySize(at: runtime.bundlePath),
+            byteCount: Self.runtimeSize(diskImage: diskImage, bundlePath: runtime.bundlePath),
             path: runtime.bundlePath ?? "simctl://runtime/\(runtime.identifier)",
             modifiedAt: nil,
             safety: (isNewest || isPinned) ? .highRisk : .caution,
             reason: "Installed runtimes support simulator devices. They are never selected automatically. \(warnings)",
             isRecommended: false,
-            removalMethod: .simulatorRuntime(identifier: deletionIdentifier),
+            removalMethod: .simulatorRuntime(identifier: diskImage?.deletionIdentifier ?? runtime.identifier),
             runtime: information,
             isActive: false
         )
@@ -163,12 +169,15 @@ actor CoreSimulatorScanner {
         return newestRuntimeIDs(runtimes: payload.runtimes ?? [])
     }
 
-    static func runtimeDeletionIdentifiers(from data: Data) throws -> [String: String] {
+    static func runtimeDiskImageInformation(from data: Data) throws -> [String: RuntimeDiskImageInformation] {
         let diskImages = try JSONDecoder().decode([String: RuntimeDiskImage].self, from: data)
-        return diskImages.reduce(into: [:]) { identifiers, entry in
+        return diskImages.reduce(into: [:]) { information, entry in
             let (dictionaryIdentifier, diskImage) = entry
             guard let runtimeIdentifier = diskImage.runtimeIdentifier else { return }
-            identifiers[runtimeIdentifier] = diskImage.identifier ?? dictionaryIdentifier
+            information[runtimeIdentifier] = RuntimeDiskImageInformation(
+                deletionIdentifier: diskImage.identifier ?? dictionaryIdentifier,
+                sizeBytes: diskImage.sizeBytes
+            )
         }
     }
 
@@ -197,6 +206,13 @@ actor CoreSimulatorScanner {
 
     private static func versionComponents(_ version: String) -> [Int] {
         version.split(separator: ".").map { Int($0) ?? 0 }
+    }
+
+    private static func runtimeSize(diskImage: RuntimeDiskImageInformation?, bundlePath: String?) -> Int64 {
+        if let sizeBytes = diskImage?.sizeBytes, sizeBytes > 0 {
+            return sizeBytes
+        }
+        return directorySize(at: bundlePath)
     }
 
     private static func directorySize(at path: String?) -> Int64 {
