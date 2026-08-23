@@ -30,8 +30,8 @@ import SwiftUI
 #Preview("Update Completed") {
     AgentToolsUpdateCompletionView(
         result: AgentToolsUpdateResult(
-            version: "1.0.8",
-            detail: "Version 1.0.8 is installed for Codex and Cursor. Restart these apps before using Derived."
+            version: "1.0.9",
+            detail: "Version 1.0.9 is installed for Codex and Cursor. Restart these apps before using Derived."
         ),
         close: {}
     )
@@ -52,7 +52,7 @@ private func previewAvailability(
     for installationKind: AgentToolsInstallationKind
 ) -> AgentToolsUpdateAvailability {
     guard let installedVersion = AgentToolsVersion("1.0.4"),
-          let availableVersion = AgentToolsVersion("1.0.8") else {
+          let availableVersion = AgentToolsVersion("1.0.9") else {
         preconditionFailure("Preview versions must use semantic versioning.")
     }
 
