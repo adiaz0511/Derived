@@ -1,13 +1,14 @@
 import Foundation
 
 actor DiskStorageScanner {
-    private let volumeURL: URL
+    private var volumeURL: URL
 
     init(volumeURL: URL = .homeDirectory) {
         self.volumeURL = volumeURL
     }
 
     func snapshot() -> DiskStorageSnapshot? {
+        volumeURL.removeAllCachedResourceValues()
         let keys: Set<URLResourceKey> = [
             .volumeTotalCapacityKey,
             .volumeAvailableCapacityKey,
