@@ -72,6 +72,11 @@ final class AppModel {
     func scan() async {
         guard !isScanning else { return }
         scanState = .scanning
+        defer {
+            if isScanning {
+                scanState = .idle
+            }
+        }
         let settings = settingsStore.settings
 
         async let fileSystemTask = fileSystemScanner.scan(settings: settings)
@@ -97,7 +102,6 @@ final class AppModel {
         report = ScanReport(scannedAt: .now, items: allItems, activeProcesses: activeProcesses, warnings: warnings)
         itemsByCategory = Dictionary(grouping: allItems, by: \.category)
         selectedItemIDs = Set(allItems.filter(\.isRecommended).map(\.id))
-        scanState = .idle
     }
 
     func setSelected(_ selected: Bool, item: CleanupItem) {

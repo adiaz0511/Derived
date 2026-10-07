@@ -21,8 +21,8 @@ struct AgentToolsUpdateServiceTests {
         try fileManager.createDirectory(at: installedBin, withIntermediateDirectories: true)
         try fileManager.createDirectory(at: installedSkill, withIntermediateDirectories: true)
 
-        try writeExecutable(version: "1.0.9", to: payloadBin.appending(path: "derived"))
-        try writeExecutable(version: "1.0.9", to: payloadBin.appending(path: "derived-mcp"))
+        try writeExecutable(version: "1.0.10", to: payloadBin.appending(path: "derived"))
+        try writeExecutable(version: "1.0.10", to: payloadBin.appending(path: "derived-mcp"))
         try writeExecutable(version: "1.0.4", to: installedBin.appending(path: "derived"))
         try writeExecutable(version: "1.0.4", to: installedBin.appending(path: "derived-mcp"))
         try Data("new skill".utf8).write(to: payloadSkill.appending(path: "SKILL.md"))
@@ -42,14 +42,14 @@ struct AgentToolsUpdateServiceTests {
         let availability = try #require(await service.availability())
         #expect(availability.installationKind == .dmg)
         #expect(availability.installedVersion.description == "1.0.4")
-        #expect(availability.availableVersion.description == "1.0.9")
+        #expect(availability.availableVersion.description == "1.0.10")
 
         let result = try await service.install(availability)
 
-        #expect(result.version == "1.0.9")
+        #expect(result.version == "1.0.10")
         #expect(try String(contentsOf: installedSkill.appending(path: "SKILL.md"), encoding: .utf8) == "new skill")
         let installedVersion = try run(installedBin.appending(path: "derived"))
-        #expect(installedVersion == "derived 1.0.9")
+        #expect(installedVersion == "derived 1.0.10")
     }
 
     private func writeExecutable(version: String, to url: URL) throws {
